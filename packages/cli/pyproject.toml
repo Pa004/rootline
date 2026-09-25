@@ -11,3 +11,6 @@ dependencies = [
 
 [tool.uv.sources]
 rootline-core = { workspace = true }
+
+[project.scripts]
+rootline = "rootline_cli.cli:app"

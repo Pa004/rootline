@@ -61,7 +61,7 @@ def build_evidence_graph(
             graph.add_edge(cid, fid, kind="changes")
     for result in results:
         tid = test_node(result.classname, result.name)
-        graph.add_node(tid, type="test", outcome=result.outcome)
+        graph.add_node(tid, type="test", outcome=result.outcome, name=result.name)
         if result.file:
             fid = file_node(result.file)
             graph.add_node(fid, type="file", path=result.file)
