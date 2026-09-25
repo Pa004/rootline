@@ -13,13 +13,13 @@ from pydantic import ValidationError
 from rich.console import Console
 from rich.table import Table
 from rootline_core.blast import blast_radius
-from rootline_core.config import load_weights
 from rootline_core.explain import explain as render_explanation
 from rootline_core.export import to_csv, to_json
-from rootline_core.git import HistoryWindow, is_shallow, list_commits, open_repo
+from rootline_core.git import HistoryWindow, list_commits, open_repo
 from rootline_core.graph import build_evidence_graph
 from rootline_core.junit import parse_junit, resolve_files
-from rootline_core.ranking import Analysis, build_analysis
+from rootline_core.pipeline import run_analysis
+from rootline_core.ranking import Analysis
 from rootline_core.report import to_html
 
 from rootline_cli.benchmark import run_benchmark
@@ -46,16 +46,10 @@ def _analyze_repo(
     max_files: int,
     config: Path | None,
 ) -> Analysis:
-    git_repo = open_repo(repo)
-    if is_shallow(git_repo):
+    run = run_analysis(repo, test_results, baseline, max_commits, max_files, config)
+    if run.shallow:
         console.print("[yellow]Warning: shallow clone, analyzing fetched range only.[/yellow]")
-    commits = list_commits(
-        git_repo,
-        HistoryWindow(baseline=baseline, max_commits=max_commits, max_files=max_files),
-    )
-    results = resolve_files(parse_junit(test_results), repo) if test_results else []
-    graph = build_evidence_graph(commits, results, repo_root=repo)
-    return build_analysis(graph, commits, results, load_weights(config))
+    return run.analysis
 
 
 @app.command()
