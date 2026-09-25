@@ -22,6 +22,8 @@ from rootline_core.junit import parse_junit, resolve_files
 from rootline_core.ranking import Analysis, build_analysis
 from rootline_core.report import to_html
 
+from rootline_cli.benchmark import run_benchmark
+
 app = typer.Typer(no_args_is_help=True)
 console = Console()
 FAIL_ON = {"low": 0.0, "medium": 0.3, "high": 0.6}
@@ -255,3 +257,18 @@ def verify(
             raise typer.Exit(code=2) from exc
         finally:
             git_repo.git.worktree("remove", "--force", str(worktree))
+
+
+@app.command()
+def benchmark() -> None:
+    """Score ranking accuracy over the regression corpus (spec §20)."""
+    report = run_benchmark()
+    table = Table("case", "rank", "top-1", "top-3")
+    for case in report.cases:
+        table.add_row(case.case, str(case.rank or "-"), str(case.top1), str(case.top3))
+    console.print(table)
+    console.print(
+        f"top1={report.top1_accuracy:.2f} top3={report.top3_accuracy:.2f} mrr={report.mrr:.2f}"
+    )
+    if report.top1_accuracy < 1.0:
+        raise typer.Exit(code=1)
