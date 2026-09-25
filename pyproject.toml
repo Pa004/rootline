@@ -1,0 +1,43 @@
+[project]
+name = "rootline"
+version = "0.1.0"
+description = "Trace the change. Find the cause."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "rootline-core",
+  "rootline-cli",
+  "rootline-api",
+  "pyyaml>=6.0",
+]
+
+[tool.uv.sources]
+rootline-core = { workspace = true }
+rootline-cli = { workspace = true }
+rootline-api = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.4.0",
+  "mypy>=1.10",
+]
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/api"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

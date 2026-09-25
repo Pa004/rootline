@@ -1,0 +1,6 @@
+[project]
+name = "rootline-core"
+version = "0.1.0"
+description = "Rootline core: evidence graph types and ranking (Phase 1+)."
+requires-python = ">=3.13"
+dependencies = []

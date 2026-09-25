@@ -1,0 +1,32 @@
+# Ignore all markdown except README
+*.md
+!README.md
+!README.*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# uv
+.uv/
+
+# Node (Phase 3+)
+node_modules/
+dist/
+
+# Env / local
+.env
+*.db
+*.sqlite3
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
