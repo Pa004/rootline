@@ -65,13 +65,17 @@ def resolve_files(results: list[TestResult], repo_root: str | Path) -> list[Test
     ]
 
 
+SOURCE_EXTENSIONS = (".py", ".ts", ".tsx", ".js", ".jsx")
+
+
 def _resolve_file(classname: str, root: Path) -> str | None:
-    dotted = classname.replace(".", "/") + ".py"
-    if (root / dotted).is_file():
-        return dotted
+    dotted = classname.replace(".", "/")
+    for ext in SOURCE_EXTENSIONS:
+        if (root / (dotted + ext)).is_file():
+            return dotted + ext
     stem = classname.split(".")[-1] if classname else ""
     if stem:
-        matches = sorted(root.rglob(f"{stem}.py"))
+        matches = sorted(p for ext in SOURCE_EXTENSIONS for p in root.rglob(f"{stem}{ext}"))
         if matches:
             return str(matches[0].relative_to(root)).replace("\\", "/")
     return None

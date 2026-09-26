@@ -22,7 +22,9 @@ from rootline_core.parsers.base import Import
 from rootline_core.parsers.registry import adapter_for
 
 FAILING_OUTCOMES = frozenset({OUTCOME_FAILED, OUTCOME_ERROR})
-IGNORED_PARTS = frozenset({".git", ".venv", "__pycache__"})
+IGNORED_PARTS = frozenset({".git", ".venv", "__pycache__", "node_modules"})
+SOURCE_GLOBS = ("*.py", "*.pyi", "*.ts", "*.tsx", "*.js", "*.jsx", "*.mjs", "*.cjs")
+STRIP_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs")
 
 if TYPE_CHECKING:
     EvidenceGraph = nx.DiGraph[str, dict[str, str], dict[str, str]]
@@ -74,7 +76,10 @@ def build_evidence_graph(
 
 def _add_structure(graph: EvidenceGraph, root: Path) -> None:
     sources = sorted(
-        p for p in root.rglob("*.py") if not any(part in IGNORED_PARTS for part in p.parts)
+        p
+        for glob in SOURCE_GLOBS
+        for p in root.rglob(glob)
+        if not any(part in IGNORED_PARTS for part in p.parts)
     )
     stems: dict[str, list[str]] = {}
     for path in sources:
@@ -103,10 +108,19 @@ def _add_structure(graph: EvidenceGraph, root: Path) -> None:
 
 def _resolve_targets(imp: Import, stems: dict[str, list[str]], exclude: str) -> list[str]:
     found: list[str] = []
-    parts = imp.module.split(".") if imp.module else []
-    candidates = list(parts[-1:] + [n.split(".")[-1] for n in imp.names])
+    candidates = [_module_stem(imp.module)] if imp.module else []
+    candidates.extend(_module_stem(n) for n in imp.names)
     for stem in candidates:
         for target in stems.get(stem, []):
             if target != exclude and target not in found:
                 found.append(target)
     return sorted(found)
+
+
+def _module_stem(module: str) -> str:
+    """Last path segment without extension: './mod' → 'mod', 'a.b' → 'b'."""
+    base = module.split("/")[-1]
+    for suffix in STRIP_SUFFIXES:
+        if base.endswith(suffix) and len(base) > len(suffix):
+            return base[: -len(suffix)]
+    return base.split(".")[-1]
