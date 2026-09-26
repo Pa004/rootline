@@ -26,7 +26,8 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --group dev
-      - run: uv run mypy packages apps/api/src
+      - run: uv run mypy packages apps/api/src src
+      - run: uv build
 
   test:
     strategy:

@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "rootline"
 version = "0.1.0"
@@ -5,6 +9,9 @@ description = "Trace the change. Find the cause."
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "Apache-2.0" }
+authors = [{ name = "Pablo Domínguez" }]
+keywords = ["debugging", "causal-analysis", "git", "regression"]
+urls = { repository = "https://github.com/Pa004/rootline" }
 dependencies = [
   "rootline-core",
   "rootline-cli",
@@ -28,6 +35,10 @@ dev = [
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/api"]
+
+[tool.hatch.build.targets.wheel]
+# Root ships the `python -m rootline` shim; code lives in members.
+packages = ["src/rootline"]
 
 [tool.ruff]
 target-version = "py313"
