@@ -1,14 +1,25 @@
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import App from "./App";
 import { SAMPLE } from "./data/sample";
 
 afterEach(() => cleanup());
 
+function Providers({ children }: { children: ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
+
 describe("App", () => {
   it("renders ranked candidates with scores", () => {
-    render(<App />);
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
     expect(screen.getByText("tweak create user lookup")).toBeInTheDocument();
     expect(screen.getByText("0.30")).toBeInTheDocument();
     expect(
@@ -17,7 +28,11 @@ describe("App", () => {
   });
 
   it("shows explanation for the top candidate by default", () => {
-    render(<App />);
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Report" }));
     expect(screen.getByText("Contradictory evidence")).toBeInTheDocument();
     expect(screen.getByText(/message shares tokens/)).toBeInTheDocument();
