@@ -19,6 +19,7 @@ __pycache__/
 # Node (Phase 3+)
 node_modules/
 dist/
+*.tsbuildinfo
 
 # Env / local
 .env
