@@ -1,0 +1,41 @@
+name: Release
+
+# Publishes to PyPI via trusted publishing (OIDC, no tokens).
+# One-time manual setup (no credit card):
+#   1. Create an account at https://pypi.org/account/register/
+#   2. Register the project name (or add a pending publisher for
+#      github.com/Pa004/rootline with workflow name "Release").
+#   3. Push a tag matching pyproject.toml version, e.g. `git push origin v0.1.0`.
+# If the `rootline` name is taken, rename the project first (see Rootline.md).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.13"
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
