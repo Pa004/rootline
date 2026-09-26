@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rootline — Interface Proposal (P13)</title>
+<style>
+:root{
+  --bg: oklch(98% 0.005 250);
+  --surface: oklch(100% 0 0);
+  --fg: oklch(22% 0.02 240);
+  --muted: oklch(50% 0.018 240);
+  --border: oklch(90% 0.008 240);
+  --accent: oklch(58% 0.16 145);
+  --accent-ink: oklch(100% 0 0);
+  --danger: oklch(55% 0.18 25);
+  --warn: oklch(65% 0.15 85);
+  --ok: oklch(58% 0.16 145);
+  --track: oklch(90% 0.008 240);
+  --panel: oklch(100% 0 0);
+  --font-display: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+html[data-theme="dark"]{
+  --bg: oklch(24% 0.018 250);
+  --surface: oklch(29% 0.02 250);
+  --panel: oklch(29% 0.02 250);
+  --fg: oklch(93% 0.012 250);
+  --muted: oklch(72% 0.02 250);
+  --border: oklch(38% 0.02 250);
+  --accent: oklch(72% 0.16 155);
+  --accent-ink: oklch(20% 0.02 250);
+  --danger: oklch(68% 0.17 25);
+  --warn: oklch(76% 0.14 85);
+  --track: oklch(36% 0.02 250);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:var(--font-body); font-size:15px; line-height:1.55;
+  font-variant-numeric:tabular-nums;
+}
+a{color:var(--accent)}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+.skip{position:absolute; left:-999px; top:0; background:var(--accent); color:var(--accent-ink); padding:10px 16px; z-index:99; border-radius:0 0 8px 0; font-weight:600}
+.skip:focus{left:0}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+/* ---------- header ---------- */
+.topbar{border-bottom:1px solid var(--border); background:var(--surface)}
+.topbar-in{display:flex; align-items:center; gap:14px; padding:14px 20px; max-width:1180px; margin:0 auto; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:10px}
+.brand svg{flex:none}
+.brand-name{font-family:var(--font-display); font-weight:700; font-size:19px; letter-spacing:-0.01em}
+.brand-tag{font-size:12.5px; color:var(--muted)}
+.failpill{font-family:var(--font-mono); font-size:12.5px; border:1px solid var(--danger); color:var(--danger);
+  border-radius:999px; padding:4px 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:420px}
+.failpill b{font-weight:700}
+.spacer{flex:1}
+.meta{font-family:var(--font-mono); font-size:12px; color:var(--muted)}
+.btn{
+  font:inherit; font-size:13.5px; font-weight:600; cursor:pointer;
+  border:1px solid var(--border); background:var(--surface); color:var(--fg);
+  border-radius:8px; padding:9px 14px; min-height:44px;
+}
+.btn:hover{border-color:var(--accent)}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+html[data-theme="dark"] .btn-primary:hover{background:oklch(76% 0.16 155)}
+html:not([data-theme="dark"]) .btn-primary:hover{background:oklch(52% 0.16 145); color:oklch(100% 0 0)}
+.btn-ghost{background:transparent}
+/* ---------- tabs ---------- */
+.tabs{border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:20}
+.tabs-in{display:flex; gap:4px; max-width:1180px; margin:0 auto; padding:0 20px}
+.tab{
+  font:inherit; font-size:14px; font-weight:600; background:none; border:none; color:var(--muted);
+  padding:14px 16px; min-height:48px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{color:var(--fg); border-bottom-color:var(--accent)}
+.tab .kbd-hint{font-weight:400; font-size:11.5px; opacity:.7}
+/* ---------- panels / cards ---------- */
+main{padding:26px 0 60px}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px 22px; margin-bottom:18px}
+.card h2{font-family:var(--font-display); font-size:17px; margin:0 0 6px; letter-spacing:-0.01em}
+.card p.sub{margin:0 0 14px; color:var(--muted); font-size:13.5px}
+.mono{font-family:var(--font-mono); font-size:0.92em}
+.strength{font-family:var(--font-mono); font-weight:700; white-space:nowrap}
+.disclaimer{font-size:12.5px; color:var(--muted); border:1px dashed var(--border); border-radius:8px; padding:8px 12px; margin-top:12px}
+/* ---------- candidates table ---------- */
+.table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px}
+table{border-collapse:collapse; width:100%; min-width:860px; background:var(--panel)}
+caption{text-align:left; padding:12px 14px; color:var(--muted); font-size:13px}
+thead th{
+  text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+  font-weight:700; padding:10px 14px; border-bottom:1px solid var(--border); white-space:nowrap;
+}
+tbody td{padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:oklch(from var(--accent) l c h / 0.07)}
+tbody tr[aria-current="true"]{background:oklch(from var(--accent) l c h / 0.12)}
+.rank{font-family:var(--font-mono); font-weight:700; font-size:16px; width:44px}
+.sha{font-family:var(--font-mono); font-size:13px; font-weight:700}
+.msg{font-size:13.5px; color:var(--muted); max-width:280px}
+.bars{display:flex; flex-direction:column; gap:6px; min-width:280px}
+.bar-row{display:flex; align-items:center; gap:8px; font-size:11.5px}
+.bar-row .lbl{font-family:var(--font-mono); width:86px; flex:none; color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.04em}
+.bar-track{flex:1; height:10px; background:var(--track); border-radius:5px; position:relative; overflow:hidden}
+.bar-fill{position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--accent)}
+.bar-fill.neg{background:var(--danger); background-image:repeating-linear-gradient(45deg, transparent, transparent 3px, rgb(0 0 0 / .25) 3px, rgb(0 0 0 / .25) 6px)}
+.bar-val{font-family:var(--font-mono); width:52px; text-align:right; flex:none}
+.total{display:flex; align-items:center; gap:10px}
+.total .strength{font-size:17px}
+.pill{display:inline-block; font-size:11.5px; font-weight:700; border-radius:999px; padding:2px 10px; border:1px solid var(--border); white-space:nowrap}
+.pill.warn{color:var(--warn); border-color:var(--warn)}
+.pill.ok{color:var(--accent); border-color:var(--accent)}
+.legend{display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:14px; font-size:12.5px; color:var(--muted)}
+.legend .sw{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px}
+.sw.pos{background:var(--accent)}
+.sw.neg{background:var(--danger)}
+/* ---------- graph ---------- */
+.graph-layout{display:grid; grid-template-columns:1fr 300px; gap:16px}
+@media (max-width:900px){.graph-layout{grid-template-columns:1fr}}
+.toolbar{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-bottom:12px}
+.toolbar fieldset{border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin:0; display:flex; gap:12px; flex-wrap:wrap}
+.toolbar legend{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; padding:0 6px}
+.check{display:inline-flex; align-items:center; gap:7px; font-size:13px; cursor:pointer; min-height:44px}
+.check input{width:18px; height:18px; accent-color:var(--accent)}
+.search{font:inherit; font-size:13.5px; background:var(--surface); color:var(--fg); border:1px solid var(--border); border-radius:8px; padding:9px 12px; min-height:44px; min-width:220px; font-family:var(--font-mono)}
+.canvas-wrap{border:1px solid var(--border); border-radius:10px; background:var(--surface); position:relative; overflow:hidden}
+.canvas-wrap svg{display:block; width:100%; height:auto}
+.statline{display:flex; flex-wrap:wrap; gap:6px 20px; font-family:var(--font-mono); font-size:12.5px; color:var(--muted); padding:10px 14px; border-top:1px solid var(--border)}
+.g-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12.5px; color:var(--muted); margin-top:12px}
+.g-legend svg{vertical-align:-4px; margin-right:5px}
+.edge-key{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:4px 16px; font-size:12.5px; color:var(--muted); margin-top:8px}
+.detail{position:sticky; top:70px; align-self:start}
+.detail dl{margin:0; display:grid; grid-template-columns:86px 1fr; gap:6px 10px; font-size:13px}
+.detail dt{color:var(--muted); font-weight:600}
+.detail dd{margin:0; font-family:var(--font-mono); font-size:12.5px; overflow-wrap:anywhere}
+.detail .conn{margin:12px 0 0; padding:0; list-style:none; font-size:12.5px; max-height:220px; overflow:auto}
+.detail .conn li{padding:5px 0; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12px}
+.node{cursor:pointer}
+.node:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.node.dim{opacity:.18}
+.edge.dim{opacity:.12}
+.hint{font-size:12.5px; color:var(--muted)}
+kbd{font-family:var(--font-mono); font-size:11.5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:5px; padding:1px 6px; background:var(--surface)}
+/* ---------- explanation ---------- */
+.expl-head{display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; margin-bottom:6px}
+.expl-head .sha{font-size:20px}
+.score-big{font-family:var(--font-mono); font-size:15px; border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:8px 16px; white-space:nowrap}
+.ev-list{list-style:none; margin:0; padding:0}
+.ev-list li{display:grid; grid-template-columns:64px 92px 1fr; gap:12px; padding:10px 0; border-top:1px solid var(--border); font-size:13.5px; align-items:baseline}
+.ev-list li:first-child{border-top:none}
+.ev-kind{font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+.ev-pts{font-family:var(--font-mono); font-weight:700; color:var(--accent)}
+.ev-list li.contra .ev-pts{color:var(--danger)}
+.contra-box{border:1px solid var(--danger); border-radius:10px; padding:14px 16px; margin-top:4px}
+.contra-box h3{margin:0 0 6px; font-size:14px; color:var(--danger)}
+.contra-box p{margin:0; font-size:13.5px}
+.verify{background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; font-family:var(--font-mono); font-size:13px; overflow-x:auto; white-space:pre}
+.actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+select.cand-switch{font:inherit; font-size:13.5px; background:var(--surface); color:var(--fg); border:1px solid var(--border); border-radius:8px; padding:9px 12px; min-height:44px; font-family:var(--font-mono)}
+footer.site{border-top:1px solid var(--border); padding:22px 0 40px; color:var(--muted); font-size:12.5px}
+footer.site code{font-family:var(--font-mono); font-size:12px}
+.toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--fg); color:var(--bg); font-size:13.5px; font-weight:600; padding:10px 18px; border-radius:8px; opacity:0; pointer-events:none; transition:opacity .2s}
+.toast.show{opacity:1}
+@media (max-width:640px){
+  .failpill{max-width:100%}
+  .ev-list li{grid-template-columns:56px 1fr; }
+  .ev-list li .ev-detail{grid-column:2}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand" data-od-id="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="7" cy="23" r="4" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="7" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="23" cy="15" r="4" fill="var(--accent)" stroke="none"/><path d="M7 11v8M11 15h8" stroke="currentColor" stroke-width="2.4"/></svg>
+      <div>
+        <div class="brand-name">Rootline</div>
+        <div class="brand-tag">Trace the change. Find the cause.</div>
+      </div>
+    </div>
+    <span class="failpill" data-od-id="failing-test" title="Failing test under investigation"><b>FAIL</b>&nbsp;&nbsp;tests/api/test_users.py::test_create_user</span>
+    <span class="spacer"></span>
+    <span class="meta" data-od-id="analysis-meta">analysis a3f9c2 · schema v1 · local</span>
+    <button class="btn btn-ghost" id="themeBtn" data-od-id="theme-toggle" aria-pressed="true" title="Toggle color scheme">Light mode</button>
+  </div>
+  <nav class="tabs" aria-label="Proposal views">
+    <div class="tabs-in" role="tablist" aria-label="Rootline views">
+      <button class="tab" role="tab" id="tab-candidates" aria-controls="panel-candidates" aria-selected="true" data-od-id="tab-candidates">Candidates <span class="kbd-hint">[1]</span></button>
+      <button class="tab" role="tab" id="tab-graph" aria-controls="panel-graph" aria-selected="false" tabindex="-1" data-od-id="tab-graph">Graph explorer <span class="kbd-hint">[2]</span></button>
+      <button class="tab" role="tab" id="tab-explain" aria-controls="panel-explain" aria-selected="false" tabindex="-1" data-od-id="tab-explain">Explanation <span class="kbd-hint">[3]</span></button>
+    </div>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <!-- ============ 1 · CANDIDATES ============ -->
+  <section class="panel active" id="panel-candidates" role="tabpanel" aria-labelledby="tab-candidates" tabindex="0" data-od-id="candidates-panel">
+    <div class="card">
+      <h2 data-od-id="candidates-title">Suspect commits, ranked by evidence</h2>
+      <p class="sub">Window: <span class="mono">main..HEAD</span> · 50 commits · 1 failing test · fully local analysis. Select a row to open its explanation.</p>
+      <div class="table-scroll">
+        <table data-od-id="candidates-table">
+          <caption>Ranked candidate causes for <span class="mono">tests/api/test_users.py::test_create_user</span></caption>
+          <thead><tr>
+            <th scope="col">#</th><th scope="col">Commit</th><th scope="col">Evidence strength</th>
+            <th scope="col">Evidence breakdown (points)</th><th scope="col">Flags</th><th scope="col"><span class="hint">Detail</span></th>
+          </tr></thead>
+          <tbody id="candBody"></tbody>
+        </table>
+      </div>
+      <div class="legend" aria-label="Breakdown legend">
+        <span><span class="sw pos"></span>supporting points</span>
+        <span><span class="sw neg"></span>contradiction (hatched, subtracts)</span>
+        <span class="mono">temporal · structural · execution · test · semantic</span>
+      </div>
+      <p class="disclaimer">“Evidence strength” is a weighted sum of evidence points — <b>not a probability</b>. Scores are comparable within one analysis only.</p>
+    </div>
+  </section>
+
+  <!-- ============ 2 · GRAPH ============ -->
+  <section class="panel" id="panel-graph" role="tabpanel" aria-labelledby="tab-graph" tabindex="0" data-od-id="graph-panel">
+    <div class="card">
+      <h2 data-od-id="graph-title">Evidence graph explorer (mock)</h2>
+      <p class="sub">Node shape + label encode type redundantly — never color alone. <kbd>Tab</kbd> moves between nodes, <kbd>Enter</kbd> selects, <kbd>+</kbd>/<kbd>−</kbd> zoom.</p>
+      <div class="toolbar" data-od-id="graph-filters">
+        <fieldset><legend>Node types</legend>
+          <label class="check"><input type="checkbox" data-ntype="commit" checked> ■ commit</label>
+          <label class="check"><input type="checkbox" data-ntype="file" checked> ● file</label>
+          <label class="check"><input type="checkbox" data-ntype="symbol" checked> ◆ symbol</label>
+          <label class="check"><input type="checkbox" data-ntype="test" checked> ▲ test</label>
+        </fieldset>
+        <fieldset><legend>Edge types</legend>
+          <label class="check"><input type="checkbox" data-etype="changes" checked> changes</label>
+          <label class="check"><input type="checkbox" data-etype="contains" checked> contains</label>
+          <label class="check"><input type="checkbox" data-etype="fails" checked> fails</label>
+          <label class="check"><input type="checkbox" data-etype="covers" checked> covers</label>
+          <label class="check"><input type="checkbox" data-etype="depends" checked> depends</label>
+        </fieldset>
+        <input class="search" id="gSearch" type="search" placeholder="filter: e.g. users.py" aria-label="Filter graph nodes by text" data-od-id="graph-search">
+        <button class="btn" id="zoomOut" data-od-id="graph-zoom-out" aria-label="Zoom out">−</button>
+        <button class="btn" id="zoomIn" data-od-id="graph-zoom-in" aria-label="Zoom in">+</button>
+        <button class="btn" id="zoomReset" data-od-id="graph-zoom-reset">Reset view</button>
+      </div>
+      <div class="graph-layout">
+        <div>
+          <div class="canvas-wrap">
+            <svg id="graphSvg" viewBox="0 0 760 520" role="group" aria-label="Evidence graph canvas" data-od-id="graph-canvas"></svg>
+            <div class="statline"><span id="statNodes"></span><span id="statEdges"></span><span id="statSel">nothing selected</span></div>
+          </div>
+          <div class="g-legend" aria-label="Node shape legend">
+            <span><svg width="16" height="16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>commit</span>
+            <span><svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg>file</span>
+            <span><svg width="16" height="16"><path d="M8 1 15 8 8 15 1 8Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>symbol</span>
+            <span><svg width="16" height="16"><path d="M8 2 15 14 1 14Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>test</span>
+          </div>
+          <div class="edge-key" aria-label="Edge style legend">
+            <span><svg width="34" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="currentColor" stroke-width="2.5"/></svg>changes (solid)</span>
+            <span><svg width="34" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="currentColor" stroke-width="1.6" stroke-dasharray="5 3"/></svg>contains (dashed)</span>
+            <span><svg width="34" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="var(--danger)" stroke-width="2.5"/></svg>fails (red solid)</span>
+            <span><svg width="34" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 3"/></svg>covers (dotted)</span>
+            <span><svg width="34" height="8"><line x1="0" y1="4" x2="30" y2="4" stroke="currentColor" stroke-width="1.2"/></svg>depends (thin)</span>
+          </div>
+        </div>
+        <aside class="card detail" aria-live="polite" data-od-id="graph-detail">
+          <h2>Node detail</h2>
+          <p class="sub" id="dEmpty">Select a node to inspect it.</p>
+          <div id="dBody" hidden>
+            <dl>
+              <dt>Type</dt><dd id="dType"></dd>
+              <dt>Label</dt><dd id="dLabel"></dd>
+              <dt>Ref</dt><dd id="dRef"></dd>
+              <dt>Role</dt><dd id="dRole"></dd>
+            </dl>
+            <h2 style="margin-top:14px; font-size:14px">Connections</h2>
+            <ul class="conn" id="dConn"></ul>
+            <div class="actions"><button class="btn" id="dExplain" data-od-id="graph-open-explanation">Open in Explanation</button></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 · EXPLANATION ============ -->
+  <section class="panel" id="panel-explain" role="tabpanel" aria-labelledby="tab-explain" tabindex="0" data-od-id="explanation-panel">
+    <div class="card">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px">
+        <h2 data-od-id="explanation-title" style="margin:0">Explanation report</h2>
+        <span class="spacer"></span>
+        <label class="hint" for="candSwitch">Candidate</label>
+        <select class="cand-switch" id="candSwitch" data-od-id="candidate-switch"></select>
+      </div>
+      <div class="expl-head">
+        <div>
+          <div class="sha" id="exSha" data-od-id="explanation-sha"></div>
+          <div class="mono" id="exMsg" style="color:var(--muted); font-size:13px"></div>
+        </div>
+        <span class="spacer"></span>
+        <span class="score-big" id="exScore" data-od-id="explanation-score"></span>
+      </div>
+      <h2 style="font-size:14px; margin-top:18px">Supporting evidence</h2>
+      <ul class="ev-list" id="exSupport" data-od-id="evidence-supporting"></ul>
+      <h2 style="font-size:14px; margin-top:18px">Contradictory evidence</h2>
+      <div class="contra-box" data-od-id="evidence-contradictory">
+        <h3>Not ruled out</h3>
+        <p id="exContra"></p>
+      </div>
+      <h2 style="font-size:14px; margin-top:18px">Suggested verification</h2>
+      <div class="verify" id="exVerify" data-od-id="verification-command" tabindex="0" aria-label="Suggested verification command"></div>
+      <div class="actions">
+        <button class="btn btn-primary" id="copyBtn" data-od-id="copy-verification">Copy verification command</button>
+        <button class="btn" id="revertBtn" data-od-id="mark-verified">Mark verification run</button>
+        <span class="hint" id="verState" role="status"></span>
+      </div>
+      <p class="disclaimer">Verification is a suggestion for the developer to run locally — this proposal never executes git commands itself.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span data-od-id="api-mapping">API mapping: <code>GET /api/v1/analyses/{id}/candidates</code> · <code>/graph</code> · <code>/evidence/{sha}</code> (paginated <code>limit</code>/<code>cursor</code>, <code>schema_version</code>). This mock inlines sample data — no runtime network calls.</span>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ---- sample data: mirrors analysis.json shape {commit_sha, message, score, evidence[{kind, points, detail}]} ---- */
+var CANDIDATES = [
+  {sha:"8a92f1", msg:"refactor user creation to async session", score:0.87,
+   ev:[["temporal",0.20,"Landed 14 min before first failure (CI run #4821)"],
+       ["structural",0.25,"Touches src/api/users.py :: create_user, covered by the failing test"],
+       ["execution",0.25,"Changed lines run in the failing frame (users.py:87 create_user)"],
+       ["test",0.15,"Only commit in window modifying code the failing test covers"],
+       ["semantic",0.10,"Diff reworks session.commit path; failure is IntegrityError on commit"]],
+   contra:0.08, contraText:"Deployment configuration also changed (f41c9d) — an infrastructure cause is not ruled out."},
+  {sha:"3b7e2a", msg:"bump pydantic to 2.9", score:0.52,
+   ev:[["temporal",0.12,"In window, 2 h before first failure"],["structural",0.10,"Dependency of src/api/users.py"],
+       ["execution",0.08,"Validation frames present in traceback"],["test",0.12,"Covered import chain of failing test"],
+       ["semantic",0.10,"Changelog mentions validator behavior change"]],
+   contra:0, contraText:"No contradictory evidence recorded — lower strength overall."},
+  {sha:"f41c9d", msg:"update deployment config", score:0.41,
+   ev:[["temporal",0.15,"Deployed 9 min before first failure"],["structural",0.05,"Touches deploy config only, no app code"],
+       ["execution",0.08,"Same container image tag as failing run"],["test",0.06,"Failing test also fails on previous image (1/3 runs)"],
+       ["semantic",0.07,"Env var DB_POOL_SIZE changed 5 → 20"]],
+   contra:0, contraText:"Explains timing but not the IntegrityError signature — kept as contradiction against 8a92f1."},
+  {sha:"77aa03", msg:"add rate limiting middleware", score:0.33,
+   ev:[["temporal",0.08,"In window, 1 day before failure"],["structural",0.07,"Middleware wraps /users route"],
+       ["execution",0.06,"Middleware frame absent from traceback"],["test",0.05,"Not covered by failing test path"],
+       ["semantic",0.07,"Returns 429, unrelated to IntegrityError"]],
+   contra:0, contraText:"No contradictory evidence recorded — weak structural link."},
+  {sha:"c90d11", msg:"update README examples", score:0.09,
+   ev:[["temporal",0.02,"In window"],["structural",0.01,"Docs only"],["execution",0.00,"Never executed"],
+       ["test",0.02,"No coverage overlap"],["semantic",0.04,"Example snippet mentions create_user"]],
+   contra:0, contraText:"Docs-only change — effectively exonerated."}
+];
+var KINDS = ["temporal","structural","execution","test","semantic"];
+var state = {candidate:"8a92f1", node:null, zoom:1, verified:{}};
+try{
+  var s = JSON.parse(localStorage.getItem("rootline-p13")||"{}");
+  if(s.tab) state.tab = s.tab;
+  if(s.theme) document.documentElement.setAttribute("data-theme", s.theme);
+  if(s.candidate) state.candidate = s.candidate;
+}catch(e){}
+function save(){ try{localStorage.setItem("rootline-p13", JSON.stringify({tab:state.tab||"candidates", theme:document.documentElement.getAttribute("data-theme"), candidate:state.candidate}));}catch(e){} }
+function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(function(){t.classList.remove("show");},1800); }
+
+/* ---- tabs (keyboard: 1/2/3 + arrows) ---- */
+var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+var panels = {candidates:document.getElementById("panel-candidates"), graph:document.getElementById("panel-graph"), explain:document.getElementById("panel-explain")};
+function showTab(name, focus){
+  state.tab = name; save();
+  tabs.forEach(function(t){
+    var on = t.id === "tab-"+name;
+    t.setAttribute("aria-selected", on?"true":"false");
+    t.tabIndex = on?0:-1;
+    if(on && focus) t.focus();
+  });
+  Object.keys(panels).forEach(function(k){ panels[k].classList.toggle("active", k===name); });
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){ showTab(t.id.replace("tab-","")); });
+  t.addEventListener("keydown", function(e){
+    var j = null;
+    if(e.key==="ArrowRight") j=(i+1)%tabs.length;
+    if(e.key==="ArrowLeft") j=(i-1+tabs.length)%tabs.length;
+    if(j!==null){ e.preventDefault(); showTab(tabs[j].id.replace("tab-",""), true); }
+  });
+});
+document.addEventListener("keydown", function(e){
+  if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+  if(e.key==="1") showTab("candidates");
+  if(e.key==="2") showTab("graph");
+  if(e.key==="3") showTab("explain");
+});
+
+/* ---- theme ---- */
+var themeBtn = document.getElementById("themeBtn");
+function syncTheme(){
+  var dark = document.documentElement.getAttribute("data-theme")==="dark";
+  themeBtn.textContent = dark ? "Light mode" : "Dark mode";
+  themeBtn.setAttribute("aria-pressed", dark?"true":"false");
+}
+themeBtn.addEventListener("click", function(){
+  var dark = document.documentElement.getAttribute("data-theme")==="dark";
+  document.documentElement.setAttribute("data-theme", dark?"light":"dark");
+  syncTheme(); save();
+});
+syncTheme();
+
+/* ---- candidates table ---- */
+function barRow(kind, pts){
+  var pct = Math.max(0, Math.min(100, pts*100));
+  return '<div class="bar-row"><span class="lbl">'+kind+'</span>'+
+    '<span class="bar-track" role="img" aria-label="'+kind+' '+(pts>0?"+":"")+pts.toFixed(2)+' points">'+
+    '<span class="bar-fill'+(pts<0?" neg":"")+'" style="width:'+pct+'%"></span></span>'+
+    '<span class="bar-val">'+(pts>0?"+":"")+pts.toFixed(2)+'</span></div>';
+}
+function renderCandidates(){
+  var tb = document.getElementById("candBody"); tb.innerHTML = "";
+  CANDIDATES.forEach(function(c, i){
+    var tr = document.createElement("tr");
+    tr.tabIndex = 0; tr.setAttribute("aria-current", c.sha===state.candidate?"true":"false");
+    tr.setAttribute("data-od-id", "candidate-row-"+c.sha);
+    tr.setAttribute("aria-label", "Rank "+(i+1)+", commit "+c.sha+", evidence strength "+c.score.toFixed(2)+". Activate to open explanation.");
+    var bars = c.ev.map(function(e){return barRow(e[0], e[1]);}).join("");
+    if(c.contra) bars += barRow("contradiction", -c.contra);
+    tr.innerHTML = '<td class="rank">'+(i+1)+'</td>'+
+      '<td><div class="sha">'+c.sha+'</div><div class="msg">'+c.msg+'</div></td>'+
+      '<td><span class="strength">evidence strength '+c.score.toFixed(2)+'</span></td>'+
+      '<td><div class="bars">'+bars+'</div></td>'+
+      '<td>'+(c.contra?'<span class="pill warn">contradicted</span>':'<span class="pill ok">consistent</span>')+'</td>'+
+      '<td><button class="btn" data-explain="'+c.sha+'" data-od-id="explain-'+c.sha+'">Explain</button></td>';
+    tr.addEventListener("click", function(e){ if(e.target.tagName!=="BUTTON"){ openExplanation(c.sha); } });
+    tr.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openExplanation(c.sha); } });
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll("[data-explain]").forEach(function(b){
+    b.addEventListener("click", function(e){ e.stopPropagation(); openExplanation(b.getAttribute("data-explain")); });
+  });
+}
+
+/* ---- explanation ---- */
+function openExplanation(sha){ state.candidate = sha; save(); renderCandidates(); renderExplanation(); showTab("explain"); }
+function renderExplanation(){
+  var c = CANDIDATES.filter(function(x){return x.sha===state.candidate;})[0] || CANDIDATES[0];
+  var sw = document.getElementById("candSwitch");
+  if(!sw.options.length){
+    CANDIDATES.forEach(function(x){
+      var o = document.createElement("option"); o.value = x.sha; o.textContent = x.sha+" · "+x.score.toFixed(2); sw.appendChild(o);
+    });
+    sw.addEventListener("change", function(){ openExplanation(sw.value); });
+  }
+  sw.value = c.sha;
+  document.getElementById("exSha").textContent = "commit "+c.sha;
+  document.getElementById("exMsg").textContent = c.msg;
+  document.getElementById("exScore").textContent = "evidence strength "+c.score.toFixed(2);
+  var ul = document.getElementById("exSupport"); ul.innerHTML = "";
+  c.ev.forEach(function(e){
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="ev-kind">'+e[0]+'</span><span class="ev-pts">+'+e[1].toFixed(2)+'</span><span class="ev-detail">'+e[2]+'</span>';
+    ul.appendChild(li);
+  });
+  if(c.contra){
+    var li = document.createElement("li"); li.className = "contra";
+    li.innerHTML = '<span class="ev-kind">contradiction</span><span class="ev-pts">−'+c.contra.toFixed(2)+'</span><span class="ev-detail">'+c.contraText+'</span>';
+    ul.appendChild(li);
+  }
+  document.getElementById("exContra").textContent = c.contraText;
+  var cmd = "git stash && git revert --no-commit "+c.sha+" && pytest tests/api/test_users.py::test_create_user";
+  document.getElementById("exVerify").textContent = "# Suggested verification — run locally:\n"+cmd;
+  document.getElementById("verState").textContent = state.verified[c.sha] ? "✓ verification recorded locally" : "";
+}
+document.getElementById("copyBtn").addEventListener("click", function(){
+  var t = document.getElementById("exVerify").textContent.split("\n").slice(1).join("\n");
+  function done(){ toast("Verification command copied"); }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done, function(){toast("Copy failed — select the command manually");}); }
+  else{ toast("Clipboard unavailable — select the command manually"); }
+});
+document.getElementById("revertBtn").addEventListener("click", function(){
+  state.verified[state.candidate] = true; renderExplanation(); toast("Verification recorded (local mock)");
+});
+
+/* ---- graph mock: deterministic ~120 nodes, SVG, pan/zoom, filters, keyboard ---- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+var rnd = mulberry32(8*9201+92);
+var FILES = ["src/api/users.py","src/api/auth.py","src/db/session.py","src/db/models.py","src/core/config.py","src/core/cache.py","src/services/mailer.py","src/mw/ratelimit.py","deploy/Dockerfile","deploy/values.yaml"];
+var SYMS = ["create_user","get_user","hash_password","verify_token","db_commit","SessionLocal","send_welcome","rate_limit","get_settings","UserCreate"];
+var TESTS = ["test_create_user","test_get_user","test_auth_flow","test_db_rollback","test_rate_limit","test_validation"];
+var NODES = [], EDGES = [];
+(function build(){
+  var id = 0;
+  function add(type, label, ref, role, x, y){ NODES.push({id:id++, type:type, label:label, ref:ref, role:role, x:x, y:y}); return id-1; }
+  var cx = 380, cy = 250;
+  var c0 = add("commit","8a92f1","8a92f1 · refactor user creation","prime suspect", cx, cy);
+  var commits = [c0];
+  ["3b7e2a","f41c9d","77aa03","c90d11","a1b2c3","d4e5f6"].forEach(function(s,i){
+    var a = (i/6)*Math.PI*2;
+    commits.push(add("commit", s, s+" · in-window commit", "context", cx+Math.cos(a)*300, cy+Math.sin(a)*190));
+  });
+  var files = FILES.map(function(f,i){
+    var a = (i/FILES.length)*Math.PI*2 + 0.3;
+    return add("file", f.split("/").pop(), f, i<4?"on suspect path":"context", cx+Math.cos(a)*200, cy+Math.sin(a)*140);
+  });
+  var syms = [];
+  for(var i=0;i<42;i++){
+    var a = rnd()*Math.PI*2, r = 60+rnd()*150;
+    syms.push(add("symbol", SYMS[i%SYMS.length]+(i>=SYMS.length?"_"+(Math.floor(i/SYMS.length)+1):""), FILES[i%FILES.length]+"::"+SYMS[i%SYMS.length], rnd()>0.6?"executed in failing run":"static", cx+Math.cos(a)*r, cy+Math.sin(a)*r*0.75));
+  }
+  var tests = [];
+  for(var j=0;j<34;j++){
+    var jj=j, aa=(jj/34)*Math.PI*2+0.15, rr=250+rnd()*60;
+    var tn = TESTS[jj%TESTS.length]+(jj>=TESTS.length?"_"+(Math.floor(jj/TESTS.length)+1):"");
+    tests.push(add("test", tn, "tests/api/"+tn+".py", jj===0?"FAILING":"passing", cx+Math.cos(aa)*rr, cy+Math.sin(aa)*rr*0.72));
+  }
+  // pad to 120 nodes with extra symbols
+  while(NODES.length<120){
+    var a2=rnd()*Math.PI*2, r2=90+rnd()*170;
+    syms.push(add("symbol","helper_"+NODES.length,FILES[NODES.length%FILES.length]+"::helper","static",cx+Math.cos(a2)*r2, cy+Math.sin(a2)*r2*0.75));
+  }
+  function edge(a,b,kind){ EDGES.push({a:a,b:b,kind:kind}); }
+  commits.forEach(function(c,i){ edge(c, files[i%files.length], "changes"); });
+  files.forEach(function(f,i){ edge(f, syms[(i*3)%syms.length], "contains"); edge(f, syms[(i*3+1)%syms.length], "contains"); });
+  tests.forEach(function(t,i){ edge(t, syms[i%syms.length], i===0?"fails":"covers"); });
+  for(var k=0;k<40;k++){ edge(syms[Math.floor(rnd()*syms.length)], syms[Math.floor(rnd()*syms.length)], "depends"); }
+  edge(tests[0], commits[0], "fails");
+})();
+var NS = "http://www.w3.org/2000/svg";
+var svg = document.getElementById("graphSvg");
+var gRoot = document.createElementNS(NS,"g"); svg.appendChild(gRoot);
+var gE = document.createElementNS(NS,"g"); gRoot.appendChild(gE);
+var gN = document.createElementNS(NS,"g"); gRoot.appendChild(gN);
+function shapeFor(n){
+  var el;
+  if(n.type==="commit"){ el=document.createElementNS(NS,"rect"); el.setAttribute("x",-8); el.setAttribute("y",-8); el.setAttribute("width",16); el.setAttribute("height",16); }
+  else if(n.type==="file"){ el=document.createElementNS(NS,"circle"); el.setAttribute("r",8); }
+  else if(n.type==="symbol"){ el=document.createElementNS(NS,"path"); el.setAttribute("d","M0 -9 L9 0 L0 9 L-9 0 Z"); }
+  else { el=document.createElementNS(NS,"path"); el.setAttribute("d","M0 -9 L9 7 L-9 7 Z"); }
+  return el;
+}
+function edgeStyle(kind){
+  if(kind==="fails") return {c:"var(--danger)", w:2.2, d:""};
+  if(kind==="contains") return {c:"currentColor", w:1.4, d:"5 3"};
+  if(kind==="covers") return {c:"currentColor", w:1.2, d:"2 3"};
+  if(kind==="depends") return {c:"currentColor", w:1.1, d:""};
+  return {c:"currentColor", w:2, d:""};
+}
+function activeN(){ var s={}; document.querySelectorAll("[data-ntype]").forEach(function(c){s[c.getAttribute("data-ntype")]=c.checked;}); return s; }
+function activeE(){ var s={}; document.querySelectorAll("[data-etype]").forEach(function(c){s[c.getAttribute("data-etype")]=c.checked;}); return s; }
+function renderGraph(){
+  var an = activeN(), ae = activeE();
+  var q = (document.getElementById("gSearch").value||"").toLowerCase();
+  gE.innerHTML = ""; gN.innerHTML = "";
+  var vis = {};
+  NODES.forEach(function(n){
+    vis[n.id] = an[n.type] && (!q || (n.label+" "+n.ref).toLowerCase().indexOf(q)>=0);
+  });
+  var eCount = 0;
+  EDGES.forEach(function(e){
+    if(!ae[e.kind] || !vis[e.a] || !vis[e.b]) return;
+    eCount++;
+    var A=NODES[e.a], B=NODES[e.b], st=edgeStyle(e.kind);
+    var ln = document.createElementNS(NS,"line");
+    ln.setAttribute("x1",A.x); ln.setAttribute("y1",A.y); ln.setAttribute("x2",B.x); ln.setAttribute("y2",B.y);
+    ln.setAttribute("stroke",st.c); ln.setAttribute("stroke-width",st.w); ln.setAttribute("opacity","0.55");
+    if(st.d) ln.setAttribute("stroke-dasharray",st.d);
+    ln.setAttribute("class","edge"); ln.dataset.a=e.a; ln.dataset.b=e.b;
+    if(state.node!==null && !(+e.a===state.node || +e.b===state.node)){ ln.classList.add("dim"); }
+    gE.appendChild(ln);
+  });
+  var nCount = 0;
+  NODES.forEach(function(n){
+    if(!vis[n.id]) return; nCount++;
+    var g = document.createElementNS(NS,"g");
+    g.setAttribute("transform","translate("+n.x+","+n.y+")");
+    g.setAttribute("class","node"+(state.node===n.id?" sel":""));
+    g.setAttribute("tabindex","0"); g.setAttribute("role","button");
+    g.setAttribute("aria-label", n.type+" "+n.label+(state.node===n.id?", selected":""));
+    g.dataset.nid = n.id;
+    var sh = shapeFor(n);
+    var hot = state.node===n.id;
+    sh.setAttribute("fill", hot ? "var(--accent)" : "var(--surface)");
+    sh.setAttribute("stroke", n.type==="test"&&n.role==="FAILING" ? "var(--danger)" : (hot?"var(--accent)":"currentColor"));
+    sh.setAttribute("stroke-width", hot?2.6:1.8);
+    g.appendChild(sh);
+    if(n.id===0 || n.role==="FAILING" || n.role==="prime suspect"){
+      var t = document.createElementNS(NS,"text");
+      t.setAttribute("y",-13); t.setAttribute("text-anchor","middle");
+      t.setAttribute("font-size","10.5"); t.setAttribute("font-family","var(--font-mono)");
+      t.setAttribute("fill","currentColor"); t.textContent = n.label;
+      g.appendChild(t);
+    }
+    if(state.node!==null){
+      var linked = state.node===n.id || EDGES.some(function(e){return ae[e.kind] && ((e.a===state.node&&e.b===n.id)||(e.b===state.node&&e.a===n.id));});
+      if(!linked) g.classList.add("dim");
+    }
+    g.addEventListener("click", function(){ selectNode(n.id); });
+    g.addEventListener("keydown", function(e){
+      if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectNode(n.id); }
+      if(e.key==="+"||e.key==="="){ e.preventDefault(); zoom(1.15); }
+      if(e.key==="-"||e.key==="_"){ e.preventDefault(); zoom(1/1.15); }
+    });
+    gN.appendChild(g);
+  });
+  document.getElementById("statNodes").textContent = nCount+" / "+NODES.length+" nodes";
+  document.getElementById("statEdges").textContent = eCount+" / "+EDGES.length+" edges";
+  applyZoom();
+}
+function selectNode(id){
+  state.node = (state.node===id) ? null : id;
+  renderGraph(); renderDetail();
+  var n = NODES[id];
+  document.getElementById("statSel").textContent = state.node===null ? "nothing selected" : ("selected: "+n.type+" "+n.label);
+}
+function renderDetail(){
+  var n = state.node===null ? null : NODES[state.node];
+  document.getElementById("dEmpty").style.display = n?"none":"block";
+  document.getElementById("dBody").hidden = !n;
+  if(!n) return;
+  var ae = activeE();
+  document.getElementById("dType").textContent = n.type;
+  document.getElementById("dLabel").textContent = n.label;
+  document.getElementById("dRef").textContent = n.ref;
+  document.getElementById("dRole").textContent = n.role;
+  var ul = document.getElementById("dConn"); ul.innerHTML = "";
+  EDGES.forEach(function(e){
+    if(!ae[e.kind]) return;
+    if(e.a===n.id || e.b===n.id){
+      var o = NODES[e.a===n.id?e.b:e.a];
+      var li = document.createElement("li");
+      li.textContent = (e.a===n.id?"—"+e.kind+"→ ":"←"+e.kind+"— ")+o.type+":"+o.label;
+      ul.appendChild(li);
+    }
+  });
+  if(!ul.children.length){ var li=document.createElement("li"); li.textContent="no visible connections (check edge filters)"; ul.appendChild(li); }
+}
+document.getElementById("dExplain").addEventListener("click", function(){
+  var n = state.node===null?null:NODES[state.node];
+  if(n && n.type==="commit"){
+    var hit = CANDIDATES.filter(function(c){return c.sha===n.label;})[0];
+    openExplanation(hit?hit.sha:"8a92f1");
+  } else openExplanation("8a92f1");
+});
+function zoom(f){ state.zoom = Math.max(0.5, Math.min(2.5, state.zoom*f)); applyZoom(); }
+function applyZoom(){ gRoot.setAttribute("transform","translate(380 250) scale("+state.zoom+") translate(-380 -250)"); }
+document.getElementById("zoomIn").addEventListener("click", function(){zoom(1.2);});
+document.getElementById("zoomOut").addEventListener("click", function(){zoom(1/1.2);});
+document.getElementById("zoomReset").addEventListener("click", function(){state.zoom=1;document.getElementById("gSearch").value="";applyZoom();renderGraph();});
+document.getElementById("gSearch").addEventListener("input", renderGraph);
+document.querySelectorAll("[data-ntype],[data-etype]").forEach(function(c){ c.addEventListener("change", function(){renderGraph(); renderDetail();}); });
+
+/* ---- init ---- */
+renderCandidates(); renderExplanation(); renderGraph(); renderDetail();
+showTab(state.tab && panels[state.tab] ? state.tab : "candidates");
+</script>
+</body>
+</html>
