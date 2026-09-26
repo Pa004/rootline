@@ -72,7 +72,7 @@ rootline/
 
 ## Deploy
 
-Local-first (`docker compose up` / `uv run`). Public demo on Cloudflare
+Local-first with `uv run` — no Docker required. Public demo on Cloudflare
 Pages + Python Worker + D1/R2, free tier without credit card. See spec §26.
 
 ## License
