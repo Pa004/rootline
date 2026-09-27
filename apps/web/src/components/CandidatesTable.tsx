@@ -16,7 +16,7 @@ export function ScoreBar({ candidate }: { candidate: CandidateScore }) {
     .reduce((sum, e) => sum + e.points, 0);
   return (
     <div
-      className="flex h-2 w-full overflow-hidden rounded bg-zinc-800"
+      className="flex h-2 w-full overflow-hidden rounded bg-(--surface-2)"
       role="img"
       aria-label={`evidence breakdown, total ${candidate.score.toFixed(2)}`}
     >
@@ -39,11 +39,11 @@ export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="text-left text-zinc-400">
-          <th className="border-b border-zinc-800 p-2">Commit</th>
-          <th className="border-b border-zinc-800 p-2">Message</th>
-          <th className="border-b border-zinc-800 p-2">Score</th>
-          <th className="border-b border-zinc-800 p-2">Breakdown</th>
+        <tr className="text-left text-(--muted)">
+          <th className="border-b border-(--border) p-2">Commit</th>
+          <th className="border-b border-(--border) p-2">Message</th>
+          <th className="border-b border-(--border) p-2">Score</th>
+          <th className="border-b border-(--border) p-2">Breakdown</th>
         </tr>
       </thead>
       <tbody>
@@ -52,14 +52,14 @@ export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }
             key={c.commit_sha}
             onClick={() => select(c.commit_sha === selectedSha ? null : c.commit_sha)}
             aria-selected={c.commit_sha === selectedSha}
-            className={`cursor-pointer hover:bg-zinc-900 ${
-              c.commit_sha === selectedSha ? "bg-zinc-900" : ""
+            className={`cursor-pointer hover:bg-(--surface) ${
+              c.commit_sha === selectedSha ? "bg-(--surface)" : ""
             }`}
           >
-            <td className="border-b border-zinc-900 p-2 font-mono">{c.commit_sha.slice(0, 12)}</td>
-            <td className="border-b border-zinc-900 p-2">{c.message.split("\n")[0]}</td>
-            <td className="border-b border-zinc-900 p-2 font-mono">{c.score.toFixed(2)}</td>
-            <td className="border-b border-zinc-900 p-2">
+            <td className="border-b border-(--border) p-2 font-mono">{c.commit_sha.slice(0, 12)}</td>
+            <td className="border-b border-(--border) p-2">{c.message.split("\n")[0]}</td>
+            <td className="border-b border-(--border) p-2 font-mono">{c.score.toFixed(2)}</td>
+            <td className="border-b border-(--border) p-2">
               <ScoreBar candidate={c} />
             </td>
           </tr>

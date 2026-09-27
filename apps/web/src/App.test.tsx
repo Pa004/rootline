@@ -42,4 +42,17 @@ describe("App", () => {
     expect(SAMPLE.schema_version).toBe("1.0");
     expect(SAMPLE.candidates.length).toBeGreaterThan(0);
   });
+
+  it("toggles light mode and persists the choice", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "switch to light mode" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
+    expect(screen.getByRole("button", { name: "switch to dark mode" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "switch to dark mode" }));
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
 });

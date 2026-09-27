@@ -2,7 +2,7 @@ import type { CandidateScore } from "../types";
 
 export function Explanation({ candidate }: { candidate: CandidateScore | undefined }) {
   if (!candidate) {
-    return <p className="text-zinc-400">Select a candidate to inspect its evidence.</p>;
+    return <p className="text-(--muted)">Select a candidate to inspect its evidence.</p>;
   }
   const supporting = candidate.evidence.filter((e) => e.points > 0);
   const contradicting = candidate.evidence.filter((e) => e.points < 0);
@@ -11,11 +11,11 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
       <h2 className="font-mono text-lg">
         {candidate.commit_sha.slice(0, 12)} — {candidate.score.toFixed(2)}
       </h2>
-      <p className="text-zinc-400">Evidence strength, not a probability.</p>
+      <p className="text-(--muted)">Evidence strength, not a probability.</p>
       <h3 className="mt-4 font-semibold">Evidence</h3>
       <ul>
         {supporting.map((e) => (
-          <li key={e.kind} className="text-emerald-300">
+          <li key={e.kind} className="text-emerald-600 dark:text-emerald-300">
             + [{e.kind}] {e.detail} ({e.points >= 0 ? "+" : ""}
             {e.points.toFixed(2)})
           </li>
@@ -26,7 +26,7 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
           <h3 className="mt-4 font-semibold">Contradictory evidence</h3>
           <ul>
             {contradicting.map((e) => (
-              <li key={e.kind} className="text-red-300">
+              <li key={e.kind} className="text-red-600 dark:text-red-300">
                 - [{e.kind}] {e.detail} ({e.points.toFixed(2)})
               </li>
             ))}

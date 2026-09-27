@@ -76,6 +76,9 @@ jobs:
         working-directory: apps/web
       - run: npm run build
         working-directory: apps/web
+        env:
+          VITE_API_URL: https://rootline-api.pablodo004.workers.dev
+          VITE_ANALYSIS_ID: demo-regression-01
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useUi } from "../store";
 import {
+  DARK_GRAPH,
   DEMO_EDGES,
   DEMO_NODES,
+  LIGHT_GRAPH,
   buildElements,
   createGraph,
   type GraphEdge,
@@ -22,11 +24,15 @@ export function GraphExplorer({
   const cyRef = useRef<ReturnType<typeof createGraph> | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<string | null>(null);
-  const { select } = useUi();
+  const { select, theme } = useUi();
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const cy = createGraph(containerRef.current, buildElements(nodes, edges, hidden));
+    const cy = createGraph(
+      containerRef.current,
+      buildElements(nodes, edges, hidden),
+      theme === "light" ? LIGHT_GRAPH : DARK_GRAPH,
+    );
     cyRef.current = cy;
     cy.on("tap", "node", (event) => {
       const id = String(event.target.id());
@@ -39,7 +45,7 @@ export function GraphExplorer({
       cy.destroy();
       cyRef.current = null;
     };
-  }, [nodes, edges, hidden, select]);
+  }, [nodes, edges, hidden, select, theme]);
 
   function toggle(type: string) {
     setHidden((prev) => {
@@ -73,7 +79,7 @@ export function GraphExplorer({
         ref={containerRef}
         role="application"
         aria-label="evidence graph"
-        className="mt-2 h-96 w-full rounded bg-zinc-950"
+        className="mt-2 h-96 w-full rounded border border-(--border) bg-(--surface)"
       />
       {detail && (
         <p className="mt-2 font-mono text-sm" aria-live="polite">

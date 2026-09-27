@@ -67,7 +67,19 @@ export function nodeStyle(type: string): { shape: cytoscape.Css.NodeShape; color
   return NODE_STYLE[type as GraphNode["type"]] ?? { shape: "ellipse", color: "#71717a" };
 }
 
-export function createGraph(container: HTMLElement, elements: ReturnType<typeof buildElements>) {
+export interface GraphTheme {
+  label: string;
+  edge: string;
+}
+
+export const DARK_GRAPH: GraphTheme = { label: "#e4e4e7", edge: "#52525b" };
+export const LIGHT_GRAPH: GraphTheme = { label: "#27272a", edge: "#a1a1aa" };
+
+export function createGraph(
+  container: HTMLElement,
+  elements: ReturnType<typeof buildElements>,
+  theme: GraphTheme = DARK_GRAPH,
+) {
   return cytoscape({
     container,
     elements,
@@ -78,7 +90,7 @@ export function createGraph(container: HTMLElement, elements: ReturnType<typeof 
         style: {
           label: "data(label)",
           "font-size": 10,
-          color: "#e4e4e7",
+          color: theme.label,
           "background-color": "#71717a",
           shape: "ellipse",
         },
@@ -92,16 +104,16 @@ export function createGraph(container: HTMLElement, elements: ReturnType<typeof 
         style: {
           label: "data(label)",
           "font-size": 8,
-          color: "#a1a1aa",
-          "line-color": "#52525b",
+          color: theme.label,
+          "line-color": theme.edge,
           "target-arrow-shape": "triangle",
-          "target-arrow-color": "#52525b",
+          "target-arrow-color": theme.edge,
           "curve-style": "bezier",
         },
       },
       {
         selector: ":selected",
-        style: { "border-width": 3, "border-color": "#fafafa" },
+        style: { "border-width": 3, "border-color": theme.label },
       },
     ],
   });
