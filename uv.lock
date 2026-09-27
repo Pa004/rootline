@@ -888,7 +888,7 @@ wheels = [
 
 [[package]]
 name = "rootline"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "pyyaml" },
@@ -927,7 +927,7 @@ dev = [
 
 [[package]]
 name = "rootline-api"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "apps/api" }
 dependencies = [
     { name = "fastapi" },
@@ -944,7 +944,7 @@ requires-dist = [
 
 [[package]]
 name = "rootline-cli"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/cli" }
 dependencies = [
     { name = "rich" },
@@ -961,7 +961,7 @@ requires-dist = [
 
 [[package]]
 name = "rootline-core"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/core" }
 dependencies = [
     { name = "gitpython" },
@@ -982,7 +982,7 @@ requires-dist = [
 
 [[package]]
 name = "rootline-mcp"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "packages/mcp" }
 dependencies = [
     { name = "mcp" },
