@@ -16,6 +16,7 @@ dependencies = [
   "rootline-core",
   "rootline-cli",
   "rootline-api",
+  "rootline-mcp",
   "pyyaml>=6.0",
 ]
 
@@ -23,6 +24,7 @@ dependencies = [
 rootline-core = { workspace = true }
 rootline-cli = { workspace = true }
 rootline-api = { workspace = true }
+rootline-mcp = { workspace = true }
 
 [dependency-groups]
 dev = [

@@ -1,0 +1,15 @@
+[project]
+name = "rootline-mcp"
+version = "0.1.0"
+description = "Rootline MCP server: rank, explain and blast-radius tools over stdio."
+requires-python = ">=3.13"
+dependencies = [
+  "rootline-core",
+  "mcp>=1.0",
+]
+
+[tool.uv.sources]
+rootline-core = { workspace = true }
+
+[project.scripts]
+rootline-mcp = "rootline_mcp.server:main"
