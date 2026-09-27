@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "candidates": [
+    {
+      "commit_sha": "b1c2310039562e63cf496e6c93927b7d4e13a0d6",
+      "message": "tweak create user lookup",
+      "score": 0.515,
+      "evidence": [
+        {
+          "kind": "temporal",
+          "points": 0.2,
+          "detail": "commit #1 of 2 in window"
+        },
+        {
+          "kind": "structural",
+          "points": 0.125,
+          "detail": "2 hop(s) from failing test via imports"
+        },
+        {
+          "kind": "test",
+          "points": 0.15,
+          "detail": "failing test reaches changed file via imports"
+        },
+        {
+          "kind": "semantic",
+          "points": 0.04,
+          "detail": "message shares tokens: create, user"
+        }
+      ]
+    },
+    {
+      "commit_sha": "7efa21439d09de1391c2dee38379bffb215f5c5b",
+      "message": "add users module and tests",
+      "score": 0.4,
+      "evidence": [
+        {
+          "kind": "execution",
+          "points": 0.25,
+          "detail": "failing test resolves to changed tests/test_users.py"
+        },
+        {
+          "kind": "test",
+          "points": 0.15,
+          "detail": "1 failing test file(s) linked"
+        },
+        {
+          "kind": "semantic",
+          "points": 0.04,
+          "detail": "message shares tokens: tests, users"
+        },
+        {
+          "kind": "contradiction",
+          "points": -0.04,
+          "detail": "1 passing test file(s) also changed"
+        }
+      ]
+    }
+  ]
+}

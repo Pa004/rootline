@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rootline-api",
+  "main": "src/main.py",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["python_workers"],
+  "r2_buckets": [
+    {
+      "binding": "BLOB",
+      "bucket_name": "rootline-demo"
+    }
+  ]
+}
