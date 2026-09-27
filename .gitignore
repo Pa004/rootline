@@ -20,6 +20,9 @@ __pycache__/
 node_modules/
 dist/
 *.tsbuildinfo
+test-results/
+playwright-report/
+playwright/.auth/
 
 # pywrangler (worker env, regenerated on deploy)
 workers/api/python_modules/
