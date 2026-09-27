@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import shlex
-import subprocess
 import tempfile
 from pathlib import Path
 from typing import Annotated
@@ -21,6 +20,7 @@ from rootline_core.junit import parse_junit, resolve_files
 from rootline_core.pipeline import run_analysis
 from rootline_core.ranking import Analysis
 from rootline_core.report import to_html
+from rootline_core.runner import run_command
 
 from rootline_cli.benchmark import run_benchmark
 
@@ -219,36 +219,36 @@ def verify(
     command: Annotated[str | None, typer.Option(help="Test command to run.")] = None,
     timeout: Annotated[int, typer.Option(help="Seconds before killing the run.")] = 300,
 ) -> None:
-    """Revert a candidate in a throwaway worktree and optionally rerun (FR-013)."""
+    """Revert a candidate in a throwaway worktree and optionally rerun (FR-013).
+
+    --command executes repository code: opt-in, local only, with a
+    sanitized environment (no secrets), pinned cwd and a timeout.
+    """
     git_repo = open_repo(repo)
     with tempfile.TemporaryDirectory(prefix="rootline-verify-") as tmpdir:
         worktree = Path(tmpdir) / "wt"
         git_repo.git.worktree("add", "--detach", str(worktree), sha)
         try:
-            subprocess.run(
+            reverted = run_command(
                 ["git", "-C", str(worktree), "revert", "--no-commit", sha],
-                check=True,
-                capture_output=True,
+                cwd=worktree,
                 timeout=timeout,
             )
+            if reverted.timed_out or reverted.returncode != 0:
+                console.print("[red]Revert failed in worktree.[/red]")
+                raise typer.Exit(code=2)
             if command is None:
                 console.print(f"Plan: revert {sha[:12]} in {worktree} and rerun {test or 'tests'}.")
                 console.print("Pass --command to execute it (runs repo code locally).")
                 return
-            completed = subprocess.run(
-                shlex.split(command),
-                cwd=worktree,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-            )
+            completed = run_command(shlex.split(command), cwd=worktree, timeout=timeout)
+            if completed.timed_out:
+                console.print(f"[red]Timed out after {timeout}s.[/red]")
+                raise typer.Exit(code=2)
             console.print(f"exit={completed.returncode}")
             console.print(completed.stdout[-2000:])
             if completed.returncode != 0:
                 raise typer.Exit(code=1)
-        except subprocess.TimeoutExpired as exc:
-            console.print(f"[red]Timed out after {timeout}s.[/red]")
-            raise typer.Exit(code=2) from exc
         finally:
             git_repo.git.worktree("remove", "--force", str(worktree))
 
