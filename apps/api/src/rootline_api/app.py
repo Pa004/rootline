@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from rootline_core.pipeline import run_analysis
 from rootline_core.ranking import CandidateScore
@@ -52,6 +53,8 @@ class GraphPage(BaseModel):
 def create_app(store_dir: str | Path | None = None) -> FastAPI:
     store = FileStore(store_dir or Path("analyses"))
     app = FastAPI(title="Rootline API")
+    # Local-first dev tool without secrets; the web dashboard calls it cross-origin.
+    app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"])
     app.state.store = store
 
     def _store(request: Request) -> FileStore:

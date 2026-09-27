@@ -26,6 +26,9 @@ workers/api/python_modules/
 workers/api/.wrangler/
 .wrangler/
 
+# Playwright MCP snapshots (local verification only)
+.playwright-mcp/
+
 # Env / local
 .env
 *.db

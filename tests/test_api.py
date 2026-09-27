@@ -64,3 +64,14 @@ def test_bad_repo_returns_400(tmp_path: Path) -> None:
     created = client.post("/api/v1/analyses", json={"repo": str(tmp_path / "missing")})
 
     assert created.status_code == 400
+
+
+def test_cors_allows_dashboard_origin(tmp_path: Path) -> None:
+    client, analysis_id, _ = _client(tmp_path)
+    response = client.get(
+        f"/api/v1/analyses/{analysis_id}",
+        headers={"Origin": "https://rootline-73m.pages.dev"},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "*"

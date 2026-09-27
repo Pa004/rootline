@@ -8,6 +8,7 @@ apps/api (limit/cursor) to respect the 10ms CPU / 128MB Worker limits.
 from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from store_kv import paginate, read_index, read_json
 
@@ -32,6 +33,12 @@ class GraphPage(BaseModel):
 
 
 app = FastAPI(title="Rootline demo API")
+app.add_middleware(
+    CORSMiddleware,
+    # Public read-only demo data; the local API mirrors this in create_app.
+    allow_origins=["*"],
+    allow_methods=["GET"],
+)
 
 
 def _kv(request: Request):
