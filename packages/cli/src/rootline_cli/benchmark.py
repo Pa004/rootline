@@ -49,7 +49,8 @@ def _run_case(name: str) -> CaseScore:
         truth = CASES[name](dest)
         repo = open_repo(dest)
         try:
-            commits = list_commits(repo, HistoryWindow(baseline="HEAD~50", max_commits=50))
+            window = HistoryWindow(baseline=truth.get("baseline", "HEAD~50"), max_commits=50)
+            commits = list_commits(repo, window)
             results_path = dest / truth["results_xml"]
             results = resolve_files(parse_junit(results_path), dest)
             graph = build_evidence_graph(commits, results, repo_root=dest)
