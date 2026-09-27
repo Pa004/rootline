@@ -38,6 +38,9 @@ export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }
   const { selectedSha, select } = useUi();
   return (
     <table className="w-full border-collapse text-sm">
+      <caption className="sr-only">
+        Ranked candidate commits with evidence strength scores
+      </caption>
       <thead>
         <tr className="text-left text-(--muted)">
           <th className="border-b border-(--border) p-2">Commit</th>
@@ -50,9 +53,16 @@ export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }
         {candidates.map((c) => (
           <tr
             key={c.commit_sha}
+            tabIndex={0}
             onClick={() => select(c.commit_sha === selectedSha ? null : c.commit_sha)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                select(c.commit_sha === selectedSha ? null : c.commit_sha);
+              }
+            }}
             aria-selected={c.commit_sha === selectedSha}
-            className={`cursor-pointer hover:bg-(--surface) ${
+            className={`cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 hover:bg-(--surface) ${
               c.commit_sha === selectedSha ? "bg-(--surface)" : ""
             }`}
           >

@@ -24,6 +24,12 @@ export default function App() {
   }, [theme]);
   return (
     <div className="mx-auto max-w-5xl p-4 text-(--text)">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:rounded focus:bg-(--text) focus:px-3 focus:py-1 focus:text-(--bg)"
+      >
+        Skip to results
+      </a>
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-bold">Rootline</h1>
@@ -35,7 +41,7 @@ export default function App() {
           onClick={toggleTheme}
           aria-pressed={theme === "light"}
           aria-label={`switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          className="rounded bg-(--surface-2) px-3 py-1 text-sm"
+          className="rounded bg-(--surface-2) px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {theme === "dark" ? "Light mode" : "Dark mode"}
         </button>
@@ -46,7 +52,7 @@ export default function App() {
             key={t.id}
             onClick={() => setTab(t.id)}
             aria-pressed={tab === t.id}
-            className={`rounded px-3 py-1 text-sm ${
+            className={`rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
               tab === t.id ? "bg-(--text) text-(--bg)" : "bg-(--surface-2)"
             }`}
           >
@@ -54,7 +60,7 @@ export default function App() {
           </button>
         ))}
       </nav>
-      <main className="mt-4">
+      <main id="main-content" className="mt-4" tabIndex={-1}>
         {tab === "candidates" && <CandidatesTable candidates={analysis.candidates} />}
         {tab === "graph" && (
           <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
