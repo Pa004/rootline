@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -51,7 +52,7 @@ class GraphPage(BaseModel):
 
 
 def create_app(store_dir: str | Path | None = None) -> FastAPI:
-    store = FileStore(store_dir or Path("analyses"))
+    store = FileStore(store_dir or Path(os.environ.get("ROOTLINE_STORE", "analyses")))
     app = FastAPI(title="Rootline API")
     # Local-first dev tool without secrets; the web dashboard calls it cross-origin.
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"])

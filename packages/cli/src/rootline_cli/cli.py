@@ -266,3 +266,27 @@ def benchmark() -> None:
     )
     if report.top1_accuracy < 1.0:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def serve(
+    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+    host: Annotated[str, typer.Option(help="Interface to bind.")] = "127.0.0.1",
+    store_dir: Annotated[Path, typer.Option(help="Directory for analysis files.")] = Path(
+        "analyses"
+    ),
+) -> None:
+    """Run the local API server (spec §16). Localhost only by default."""
+    import os
+
+    import uvicorn
+
+    os.environ["ROOTLINE_STORE"] = str(store_dir)
+    console.print(f"Serving API on http://{host}:{port} (store: {store_dir})")
+    uvicorn.run(
+        "rootline_api.app:create_app",
+        factory=True,
+        host=host,
+        port=port,
+        log_level="info",
+    )
