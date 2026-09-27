@@ -24,10 +24,14 @@ workers/api/
 !cd C:\Users\Asus\Desktop\Rootline\workers\api
 !wrangler login
 !wrangler kv namespace create BLOB  # once; paste the id into wrangler.jsonc
-!wrangler kv key put analyses/index.json --path=seed/analyses/index.json --binding=BLOB
-!wrangler kv key put analyses/demo-regression-01.json --path=seed/analyses/demo-regression-01.json --binding=BLOB
-!wrangler kv key put analyses/demo-regression-01.graph.json --path=seed/analyses/demo-regression-01.graph.json --binding=BLOB
+!wrangler kv key put analyses/index.json --path=seed/analyses/index.json --binding=BLOB --remote
+!wrangler kv key put analyses/demo-regression-01.json --path=seed/analyses/demo-regression-01.json --binding=BLOB --remote
+!wrangler kv key put analyses/demo-regression-01.graph.json --path=seed/analyses/demo-regression-01.graph.json --binding=BLOB --remote
 !uv run pywrangler deploy
+```
+
+`--remote` is mandatory on `kv key put`: without it wrangler writes to
+local miniflare state and production reads empty (silent mismatch).
 ```
 
 Regenerate fixtures after core changes: `uv run scripts/seed_demo.py`
