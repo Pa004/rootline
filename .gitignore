@@ -21,6 +21,11 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# pywrangler (worker env, regenerated on deploy)
+workers/api/python_modules/
+workers/api/.wrangler/
+.wrangler/
+
 # Env / local
 .env
 *.db

@@ -4,10 +4,10 @@
   "main": "src/main.py",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["python_workers"],
-  "r2_buckets": [
+  "kv_namespaces": [
     {
       "binding": "BLOB",
-      "bucket_name": "rootline-demo"
+      "id": "403f51df1b8349948400e6964574c325"
     }
   ]
 }

@@ -1,6 +1,6 @@
 """Rootline demo API on Cloudflare Python Workers (read-only).
 
-Bundle budget: fastapi + pydantic only. Data comes from the BLOB R2
+Bundle budget: fastapi + pydantic only. Data comes from the BLOB KV namespace
 binding seeded by scripts/seed_demo.py. Paginated endpoints mirror
 apps/api (limit/cursor) to respect the 10ms CPU / 128MB Worker limits.
 """
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
-from store_r2 import paginate, read_index, read_json
+from store_kv import paginate, read_index, read_json
 
 from workers import asgi
 
@@ -34,18 +34,18 @@ class GraphPage(BaseModel):
 app = FastAPI(title="Rootline demo API")
 
 
-def _bucket(request: Request):
+def _kv(request: Request):
     return request.scope["env"].BLOB
 
 
 @app.get("/api/v1/analyses")
 async def list_analyses(request: Request) -> list[dict]:
-    return await read_index(_bucket(request))
+    return await read_index(_kv(request))
 
 
 @app.get("/api/v1/analyses/{analysis_id}")
 async def get_analysis(analysis_id: str, request: Request) -> dict:
-    analysis = await read_json(_bucket(request), f"analyses/{analysis_id}.json")
+    analysis = await read_json(_kv(request), f"analyses/{analysis_id}.json")
     if analysis is None:
         raise HTTPException(status_code=404, detail="Unknown analysis.")
     return analysis
@@ -55,7 +55,7 @@ async def get_analysis(analysis_id: str, request: Request) -> dict:
 async def get_candidates(
     analysis_id: str, request: Request, limit: int = DEFAULT_LIMIT, cursor: str = "0"
 ) -> CandidatePage:
-    analysis = await read_json(_bucket(request), f"analyses/{analysis_id}.json")
+    analysis = await read_json(_kv(request), f"analyses/{analysis_id}.json")
     if analysis is None:
         raise HTTPException(status_code=404, detail="Unknown analysis.")
     items, next_cursor = paginate(list(analysis.get("candidates", [])), limit, cursor)
@@ -66,7 +66,7 @@ async def get_candidates(
 async def get_graph(
     analysis_id: str, request: Request, limit: int = DEFAULT_LIMIT, cursor: str = "0"
 ) -> GraphPage:
-    graph = await read_json(_bucket(request), f"analyses/{analysis_id}.graph.json")
+    graph = await read_json(_kv(request), f"analyses/{analysis_id}.graph.json")
     if graph is None:
         raise HTTPException(status_code=404, detail="Unknown analysis.")
     nodes = [
@@ -88,7 +88,7 @@ async def get_graph(
 
 @app.get("/api/v1/analyses/{analysis_id}/evidence/{sha}")
 async def get_evidence(analysis_id: str, sha: str, request: Request) -> dict:
-    analysis = await read_json(_bucket(request), f"analyses/{analysis_id}.json")
+    analysis = await read_json(_kv(request), f"analyses/{analysis_id}.json")
     if analysis is None:
         raise HTTPException(status_code=404, detail="Unknown analysis.")
     match = next(

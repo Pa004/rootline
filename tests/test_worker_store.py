@@ -1,42 +1,34 @@
-"""P15 tests: worker R2 read model with fake bucket (no workers SDK)."""
+"""P15 tests: worker KV read model with fake namespace (no workers SDK)."""
 
 import asyncio
 
 import pytest
-from store_r2 import paginate, read_index, read_json
+from store_kv import paginate, read_index, read_json
 
 
-class _Obj:
-    def __init__(self, text: str) -> None:
-        self._text = text
+class _Namespace:
+    def __init__(self, values: dict[str, str]) -> None:
+        self._values = values
 
-    async def text(self) -> str:
-        return self._text
-
-
-class _Bucket:
-    def __init__(self, files: dict[str, str]) -> None:
-        self._files = files
-
-    async def get(self, key: str) -> _Obj | None:
-        return _Obj(self._files[key]) if key in self._files else None
+    async def get(self, key: str) -> str | None:
+        return self._values.get(key)
 
 
-async def _read(bucket: _Bucket, key: str):
-    return await read_json(bucket, key)
+async def _read(store: _Namespace, key: str):
+    return await read_json(store, key)
 
 
 def test_read_json_hit_and_miss() -> None:
-    bucket = _Bucket({"a.json": '{"x": 1}'})
+    store = _Namespace({"a.json": '{"x": 1}'})
 
-    assert asyncio.run(_read(bucket, "a.json")) == {"x": 1}
-    assert asyncio.run(_read(bucket, "missing.json")) is None
+    assert asyncio.run(_read(store, "a.json")) == {"x": 1}
+    assert asyncio.run(_read(store, "missing.json")) is None
 
 
 def test_read_index_defaults_to_empty() -> None:
-    assert asyncio.run(read_index(_Bucket({}))) == []
-    assert asyncio.run(read_index(_Bucket({"analyses/index.json": "[1]"}))) == [1]
-    assert asyncio.run(read_index(_Bucket({"analyses/index.json": "{}"}))) == []
+    assert asyncio.run(read_index(_Namespace({}))) == []
+    assert asyncio.run(read_index(_Namespace({"analyses/index.json": "[1]"}))) == [1]
+    assert asyncio.run(read_index(_Namespace({"analyses/index.json": "{}"}))) == []
 
 
 @pytest.mark.parametrize(
