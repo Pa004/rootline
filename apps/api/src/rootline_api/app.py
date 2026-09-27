@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict
 from rootline_core.pipeline import run_analysis
 from rootline_core.ranking import CandidateScore
 
-from rootline_api.store import FileStore, UnknownAnalysisError
+from rootline_api.store import FileStore, SQLiteStore, UnknownAnalysisError, open_store
 
 DEFAULT_LIMIT = 50
 
@@ -52,15 +52,15 @@ class GraphPage(BaseModel):
 
 
 def create_app(store_dir: str | Path | None = None) -> FastAPI:
-    store = FileStore(store_dir or Path(os.environ.get("ROOTLINE_STORE", "analyses")))
+    store = open_store(store_dir or Path(os.environ.get("ROOTLINE_STORE", "analyses")))
     app = FastAPI(title="Rootline API")
     # Local-first dev tool without secrets; the web dashboard calls it cross-origin.
     app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"])
     app.state.store = store
 
-    def _store(request: Request) -> FileStore:
+    def _store(request: Request) -> FileStore | SQLiteStore:
         store = request.app.state.store
-        assert isinstance(store, FileStore)
+        assert isinstance(store, (FileStore, SQLiteStore))
         return store
 
     @app.post("/api/v1/analyses", response_model=AnalysisCreated)
