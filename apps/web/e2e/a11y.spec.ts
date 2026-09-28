@@ -14,12 +14,21 @@ async function setTheme(page: Page, theme: "dark" | "light") {
   }
 }
 
+/** View switches play a 220ms fade; audit only once text is fully opaque. */
+async function settleView(page: Page) {
+  await page.waitForFunction(() => {
+    const el = document.querySelector("#main-content > div");
+    return !el || getComputedStyle(el).opacity === "1";
+  });
+}
+
 for (const theme of THEMES) {
   for (const view of VIEWS) {
     test(`axe: ${view} view in ${theme} mode has no critical violations`, async ({ page }) => {
       await page.goto("/");
       await setTheme(page, theme);
       await page.getByRole("button", { name: view, exact: true }).click();
+      await settleView(page);
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag22a", "wcag22aa"])
         .analyze();
@@ -38,6 +47,7 @@ for (const theme of THEMES) {
       await setTheme(page, theme);
       await page.getByRole("button", { name: "Analysis", exact: true }).click();
       await page.getByRole("button", { name: tab, exact: true }).click();
+      await settleView(page);
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag22a", "wcag22aa"])
         .analyze();
