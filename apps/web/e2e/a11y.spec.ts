@@ -1,19 +1,42 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const TABS = ["Candidates", "Graph explorer", "Report"] as const;
 const THEMES = ["dark", "light"] as const;
+const VIEWS = ["Dashboard", "Benchmarks", "Examples", "Tutorial"] as const;
+
+async function setTheme(page: Page, theme: "dark" | "light") {
+  const toggle = page.getByRole("button", { name: /switch to .* mode/ });
+  const wantLight = theme === "light";
+  const pressed = await toggle.getAttribute("aria-pressed");
+  if ((pressed === "true") !== wantLight) {
+    await toggle.click();
+  }
+}
+
+for (const theme of THEMES) {
+  for (const view of VIEWS) {
+    test(`axe: ${view} view in ${theme} mode has no critical violations`, async ({ page }) => {
+      await page.goto("/");
+      await setTheme(page, theme);
+      await page.getByRole("button", { name: view, exact: true }).click();
+      const results = await new AxeBuilder({ page })
+        .withTags(["wcag2a", "wcag2aa", "wcag22a", "wcag22aa"])
+        .analyze();
+      const critical = results.violations.filter((v) =>
+        ["critical", "serious"].includes(v.impact ?? ""),
+      );
+      expect(critical, JSON.stringify(critical, null, 2)).toEqual([]);
+    });
+  }
+}
 
 for (const theme of THEMES) {
   for (const tab of TABS) {
     test(`axe: ${tab} tab in ${theme} mode has no critical violations`, async ({ page }) => {
       await page.goto("/");
-      const toggle = page.getByRole("button", { name: /switch to .* mode/ });
-      const wantLight = theme === "light";
-      const pressed = await toggle.getAttribute("aria-pressed");
-      if ((pressed === "true") !== wantLight) {
-        await toggle.click();
-      }
+      await setTheme(page, theme);
+      await page.getByRole("button", { name: "Analysis", exact: true }).click();
       await page.getByRole("button", { name: tab, exact: true }).click();
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag22a", "wcag22aa"])

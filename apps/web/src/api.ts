@@ -1,5 +1,12 @@
 import type { Analysis, CandidatePage } from "./types";
 
+export interface IndexEntry {
+  id: string;
+  candidate_count: number;
+  top_sha: string | null;
+  top_score: number | null;
+}
+
 const BASE_URL = import.meta.env.VITE_API_URL as string | undefined ?? "";
 
 async function get<T>(path: string): Promise<T> {
@@ -12,6 +19,10 @@ async function get<T>(path: string): Promise<T> {
 
 export function fetchAnalysis(id: string): Promise<Analysis> {
   return get<Analysis>(`/api/v1/analyses/${id}`);
+}
+
+export function fetchIndex(): Promise<IndexEntry[]> {
+  return get<IndexEntry[]>("/api/v1/analyses");
 }
 
 export function fetchCandidates(
