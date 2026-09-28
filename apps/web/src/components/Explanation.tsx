@@ -15,7 +15,7 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
       <h3 className="mt-4 font-semibold">Evidence</h3>
       <ul>
         {supporting.map((e) => (
-          <li key={e.kind} className="text-emerald-600 dark:text-emerald-300">
+          <li key={e.kind} className="text-emerald-700 dark:text-emerald-300">
             + [{e.kind}] {e.detail} ({e.points >= 0 ? "+" : ""}
             {e.points.toFixed(2)})
           </li>
