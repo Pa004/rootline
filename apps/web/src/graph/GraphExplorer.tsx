@@ -24,7 +24,7 @@ export function GraphExplorer({
   const cyRef = useRef<ReturnType<typeof createGraph> | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<string | null>(null);
-  const { select, theme } = useUi();
+  const { select, theme, reduceMotion } = useUi();
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -32,6 +32,7 @@ export function GraphExplorer({
       containerRef.current,
       buildElements(nodes, edges, hidden),
       theme === "light" ? LIGHT_GRAPH : DARK_GRAPH,
+      !reduceMotion,
     );
     cyRef.current = cy;
     cy.on("tap", "node", (event) => {
@@ -45,7 +46,7 @@ export function GraphExplorer({
       cy.destroy();
       cyRef.current = null;
     };
-  }, [nodes, edges, hidden, select, theme]);
+  }, [nodes, edges, hidden, select, theme, reduceMotion]);
 
   function toggle(type: string) {
     setHidden((prev) => {

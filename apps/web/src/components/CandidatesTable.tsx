@@ -22,11 +22,14 @@ export function ScoreBar({ candidate }: { candidate: CandidateScore }) {
     >
       {candidate.evidence
         .filter((e) => e.points > 0)
-        .map((e) => (
+        .map((e, i) => (
           <div
             key={e.kind}
-            className={BAR_COLORS[e.kind] ?? "bg-zinc-500"}
-            style={{ width: `${total > 0 ? (e.points / total) * 100 : 0}%` }}
+            className={`evidence-bar ${BAR_COLORS[e.kind] ?? "bg-zinc-500"}`}
+            style={{
+              width: `${total > 0 ? (e.points / total) * 100 : 0}%`,
+              animationDelay: `${i * 60}ms`,
+            }}
             title={`${e.kind} ${e.points >= 0 ? "+" : ""}${e.points.toFixed(2)} — ${e.detail}`}
           />
         ))}
@@ -61,7 +64,7 @@ export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }
                 select(c.commit_sha === selectedSha ? null : c.commit_sha);
               }
             }}
-            aria-selected={c.commit_sha === selectedSha}
+            aria-current={c.commit_sha === selectedSha ? true : undefined}
             className={`cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 hover:bg-(--surface) ${
               c.commit_sha === selectedSha ? "bg-(--surface)" : ""
             }`}

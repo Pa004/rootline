@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rootline — Dashboard, Motion &amp; Tutorial Proposal (P24)</title>
+<style>
+:root{
+  --bg: oklch(98% 0.005 250);
+  --surface: oklch(100% 0 0);
+  --panel: oklch(100% 0 0);
+  --fg: oklch(22% 0.02 240);
+  --muted: oklch(50% 0.018 240);
+  --border: oklch(90% 0.008 240);
+  --accent: oklch(58% 0.16 145);
+  --accent-ink: oklch(100% 0 0);
+  --danger: oklch(55% 0.18 25);
+  --warn: oklch(62% 0.14 85);
+  --track: oklch(90% 0.008 240);
+  --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+html[data-theme="dark"]{
+  --bg: oklch(24% 0.018 250);
+  --surface: oklch(29% 0.02 250);
+  --panel: oklch(29% 0.02 250);
+  --fg: oklch(93% 0.012 250);
+  --muted: oklch(72% 0.02 250);
+  --border: oklch(38% 0.02 250);
+  --accent: oklch(72% 0.16 155);
+  --accent-ink: oklch(20% 0.02 250);
+  --danger: oklch(68% 0.17 25);
+  --warn: oklch(76% 0.14 85);
+  --track: oklch(36% 0.02 250);
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-body); font-size:15px; line-height:1.55; font-variant-numeric:tabular-nums}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+.skip{position:absolute; left:-999px; top:0; background:var(--accent); color:var(--accent-ink); padding:10px 16px; z-index:200; border-radius:0 0 8px 0; font-weight:600}
+.skip:focus{left:0}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+.mono{font-family:var(--font-mono); font-size:.92em}
+.spacer{flex:1}
+/* header + tabs */
+.topbar{border-bottom:1px solid var(--border); background:var(--surface)}
+.topbar-in{display:flex; align-items:center; gap:12px; padding:14px 20px; max-width:1180px; margin:0 auto; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:10px}
+.brand-name{font-weight:700; font-size:19px; letter-spacing:-.01em}
+.brand-tag{font-size:12.5px; color:var(--muted)}
+.btn{font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--fg); border-radius:8px; padding:9px 14px; min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn-primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+html[data-theme="dark"] .btn-primary:hover{background:oklch(76% 0.16 155)}
+html:not([data-theme="dark"]) .btn-primary:hover{background:oklch(52% 0.16 145); color:oklch(100% 0 0)}
+.btn[aria-pressed="true"]{border-color:var(--accent); color:var(--accent)}
+.tabs{border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:40}
+.tabs-in{display:flex; gap:4px; max-width:1180px; margin:0 auto; padding:0 20px; overflow-x:auto}
+.tab{font:inherit; font-size:14px; font-weight:600; background:none; border:none; color:var(--muted); padding:14px 14px; min-height:48px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap}
+.tab:hover{color:var(--fg)}
+.tab[aria-selected="true"]{color:var(--fg); border-bottom-color:var(--accent)}
+main{padding:26px 0 60px}
+.panel{display:none}
+.panel.active{display:block; animation:viewIn .22s ease-out}
+@keyframes viewIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px 22px; margin-bottom:18px}
+.card h2{font-size:17px; margin:0 0 6px; letter-spacing:-.01em}
+.card p.sub{margin:0 0 14px; color:var(--muted); font-size:13.5px}
+/* KPI cards */
+.kpis{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-bottom:18px}
+.kpi{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px 18px; position:relative}
+.kpi .k-label{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700}
+.kpi .k-value{font-family:var(--font-mono); font-size:30px; font-weight:700; margin:4px 0 2px}
+.kpi .k-note{font-size:12.5px; color:var(--muted)}
+.kpi .k-ico{position:absolute; top:14px; right:14px; width:30px; height:30px; border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:14px; color:var(--accent); font-weight:700}
+/* recent analyses */
+.table-scroll{overflow-x:auto; border:1px solid var(--border); border-radius:10px}
+table{border-collapse:collapse; width:100%; min-width:720px; background:var(--panel)}
+thead th{text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border)}
+tbody td{padding:12px 14px; border-bottom:1px solid var(--border); font-size:13.5px}
+tbody tr:last-child td{border-bottom:none}
+.pill{display:inline-block; font-size:11.5px; font-weight:700; border-radius:999px; padding:2px 10px; border:1px solid var(--border); white-space:nowrap}
+.pill.ok{color:var(--accent); border-color:var(--accent)}
+.pill.mut{color:var(--muted)}
+.strength{font-family:var(--font-mono); font-weight:700}
+.quickstart{display:flex; gap:14px; align-items:center; flex-wrap:wrap; border:1px dashed var(--accent); border-radius:12px; padding:16px 18px; margin-bottom:18px; background:oklch(from var(--accent) l c h / .06)}
+.quickstart p{margin:0; font-size:14px}
+/* bars */
+.bars{display:flex; flex-direction:column; gap:6px; min-width:240px}
+.bar-row{display:flex; align-items:center; gap:8px; font-size:11.5px}
+.bar-row .lbl{font-family:var(--font-mono); width:96px; flex:none; color:var(--muted); text-transform:uppercase; font-size:10.5px; letter-spacing:.04em}
+.bar-track{flex:1; height:10px; background:var(--track); border-radius:5px; position:relative; overflow:hidden}
+.bar-fill{position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--accent); width:0; transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.bar-val{font-family:var(--font-mono); width:48px; text-align:right; flex:none}
+/* motion section */
+.mo-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:860px){.mo-grid{grid-template-columns:1fr}}
+.mo-table{width:100%; min-width:0; font-size:13px}
+.mo-table td, .mo-table th{padding:9px 12px}
+.demo-stage{border:1px solid var(--border); border-radius:10px; padding:16px; background:var(--surface); margin-top:10px}
+.demo-kpi{font-family:var(--font-mono); font-size:34px; font-weight:700}
+.pulse-dot{display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--accent); margin-right:8px; animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(1.5); opacity:.5}}
+.spin{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* tour overlay */
+.tour-mask{position:fixed; inset:0; background:rgb(0 0 0 / .55); z-index:100; display:none}
+.tour-mask.show{display:block}
+.tour-card{position:fixed; z-index:101; max-width:340px; background:var(--panel); border:1px solid var(--accent); border-radius:12px; padding:18px; display:none; box-shadow:0 12px 40px rgb(0 0 0 / .4)}
+.tour-card.show{display:block}
+.tour-card h3{margin:0 0 6px; font-size:15px}
+.tour-card p{margin:0 0 12px; font-size:13.5px; color:var(--muted)}
+.tour-steps{font-family:var(--font-mono); font-size:12px; color:var(--muted); margin-bottom:10px}
+.tour-actions{display:flex; gap:8px}
+.tour-spot{position:relative; z-index:102; outline:2px solid var(--accent); outline-offset:4px; border-radius:8px}
+/* wizard */
+.steps{display:flex; gap:0; margin-bottom:16px}
+.step{flex:1; text-align:center; font-size:12.5px; font-weight:700; color:var(--muted); padding:10px 4px; border-bottom:3px solid var(--border)}
+.step[aria-current="step"]{color:var(--fg); border-bottom-color:var(--accent)}
+.step .n{display:inline-flex; width:24px; height:24px; border:1px solid currentColor; border-radius:50%; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:12px; margin-right:6px}
+.verify{background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; font-family:var(--font-mono); font-size:13px; overflow-x:auto; white-space:pre; margin:10px 0}
+.wiz-nav{display:flex; gap:10px; margin-top:14px}
+/* gallery */
+.gallery{display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:14px}
+.story{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:0; overflow:hidden; cursor:pointer; font:inherit; color:inherit; text-align:left; min-height:44px}
+.story:hover{border-color:var(--accent)}
+.story-top{padding:16px 18px 12px}
+.story-tag{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700}
+.story h3{margin:6px 0 4px; font-size:15.5px}
+.story p{margin:0; font-size:13px; color:var(--muted)}
+.story-foot{display:flex; gap:10px; align-items:center; padding:12px 18px; border-top:1px solid var(--border); font-family:var(--font-mono); font-size:12px; color:var(--muted)}
+.modal-mask{position:fixed; inset:0; background:rgb(0 0 0 / .55); z-index:100; display:none; align-items:center; justify-content:center; padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:var(--panel); border:1px solid var(--border); border-radius:14px; max-width:620px; width:100%; max-height:85vh; overflow:auto; padding:24px}
+.modal h3{margin:0 0 4px; font-size:18px}
+.hint{font-size:12.5px; color:var(--muted)}
+kbd{font-family:var(--font-mono); font-size:11.5px; border:1px solid var(--border); border-bottom-width:2px; border-radius:5px; padding:1px 6px; background:var(--surface)}
+footer.site{border-top:1px solid var(--border); padding:22px 0 40px; color:var(--muted); font-size:12.5px}
+.toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--fg); color:var(--bg); font-size:13.5px; font-weight:600; padding:10px 18px; border-radius:8px; opacity:0; pointer-events:none; transition:opacity .2s; z-index:150}
+.toast.show{opacity:1}
+/* reduced motion: everything instant */
+html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after{animation:none !important; transition:none !important}
+html[data-motion="reduced"] .panel.active{animation:none}
+html[data-motion="reduced"] .bar-fill{transition:none}
+@media (prefers-reduced-motion: reduce){
+  .panel.active{animation:none}
+  .pulse-dot, .spin{animation:none}
+  .bar-fill{transition:none}
+  .toast{transition:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand" data-od-id="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="7" cy="23" r="4" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="7" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="23" cy="15" r="4" fill="var(--accent)"/><path d="M7 11v8M11 15h8" stroke="currentColor" stroke-width="2.4"/></svg>
+      <div><div class="brand-name">Rootline</div><div class="brand-tag">Trace the change. Find the cause.</div></div>
+    </div>
+    <span class="spacer"></span>
+    <span class="hint" id="motionState" data-od-id="motion-state">motion: full</span>
+    <button class="btn" id="motionBtn" data-od-id="motion-toggle" aria-pressed="false" title="Toggle reduced motion preview">Reduce motion</button>
+    <button class="btn" id="themeBtn" data-od-id="theme-toggle" aria-pressed="true" title="Toggle color scheme">Light mode</button>
+  </div>
+  <nav class="tabs" aria-label="Proposal views">
+    <div class="tabs-in" role="tablist" aria-label="Dashboard proposal views">
+      <button class="tab" role="tab" id="tab-home" aria-controls="panel-home" aria-selected="true" data-od-id="tab-home">Home dashboard</button>
+      <button class="tab" role="tab" id="tab-motion" aria-controls="panel-motion" aria-selected="false" tabindex="-1" data-od-id="tab-motion">Motion language</button>
+      <button class="tab" role="tab" id="tab-tutorial" aria-controls="panel-tutorial" aria-selected="false" tabindex="-1" data-od-id="tab-tutorial">Tutorial</button>
+      <button class="tab" role="tab" id="tab-examples" aria-controls="panel-examples" aria-selected="false" tabindex="-1" data-od-id="tab-examples">Examples</button>
+    </div>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <!-- 1 · HOME -->
+  <section class="panel active" id="panel-home" role="tabpanel" aria-labelledby="tab-home" tabindex="0" data-od-id="home-panel">
+    <div class="kpis" data-od-id="kpi-cards">
+      <div class="kpi"><span class="k-ico" aria-hidden="true">Σ</span><div class="k-label">Analyses (demo corpus)</div><div class="k-value" data-count="4" data-od-id="kpi-analyses">0</div><div class="k-note">1 live demo + 3 corpus cases</div></div>
+      <div class="kpi"><span class="k-ico" aria-hidden="true">▲</span><div class="k-label">Top evidence strength</div><div class="k-value" data-count="0.52" data-dec="2" data-od-id="kpi-top-score">0</div><div class="k-note"><span class="mono">8a92f1 · tweak create user lookup</span></div></div>
+      <div class="kpi"><span class="k-ico" aria-hidden="true">◆</span><div class="k-label">Corpus MRR (Top-1/Top-3)</div><div class="k-value" data-count="1" data-dec="2" data-od-id="kpi-mrr">0</div><div class="k-note">4 / 4 cases at rank 1</div></div>
+      <div class="kpi"><span class="k-ico" aria-hidden="true">●</span><div class="k-label">Languages covered</div><div class="k-value">Py+TS</div><div class="k-note"><span class="mono">Python · TypeScript</span> import graphs</div></div>
+    </div>
+    <div class="card">
+      <h2 data-od-id="recent-title">Recent analyses</h2>
+      <p class="sub">Newest first. Strength is evidence weight, not probability.</p>
+      <div class="table-scroll"><table data-od-id="recent-table">
+        <thead><tr><th scope="col">Analysis</th><th scope="col">Failing test</th><th scope="col">Candidates</th><th scope="col">Top strength</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">a3f9c2 · demo-shop · 2h ago</td><td class="mono">tests/api/test_users.py::test_create_user</td><td class="mono">2</td><td><span class="strength">0.52</span> <span class="mono">8a92f1</span></td><td><span class="pill ok">✓ culprit at rank 1</span></td></tr>
+          <tr><td class="mono">71bd04 · corpus regression-02 · 1d ago</td><td class="mono">tests/billing/test_invoice.py::test_totals</td><td class="mono">3</td><td><span class="strength">0.61</span> <span class="mono">c41d77</span></td><td><span class="pill ok">✓ culprit at rank 1</span></td></tr>
+          <tr><td class="mono">9e20aa · corpus regression-03 · 2d ago</td><td class="mono">tests/auth/test_login.py::test_expiry</td><td class="mono">4</td><td><span class="strength">0.48</span> <span class="mono">55f0b1</span></td><td><span class="pill ok">✓ culprit at rank 1</span></td></tr>
+          <tr><td class="mono">d319e8 · corpus regression-04 · 3d ago</td><td class="mono">tests/web/test_checkout.ts::applies coupon</td><td class="mono">2</td><td><span class="strength">0.57</span> <span class="mono">02ac9e</span></td><td><span class="pill ok">✓ culprit at rank 1</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2 data-od-id="weights-title">Default evidence weights (rootline.toml)</h2>
+      <p class="sub">Magnitudes from the accepted calibration. Contradiction subtracts.</p>
+      <div class="bars" id="weightBars" data-od-id="weights-bars"></div>
+    </div>
+    <div class="quickstart" data-od-id="quickstart-cta">
+      <div><p><b>New here? Run your first analysis in ~2 minutes.</b></p><p class="hint">Local only — no accounts, no paid services.</p></div>
+      <span class="spacer"></span>
+      <button class="btn btn-primary" id="ctaTutorial" data-od-id="cta-start-tutorial">Start the 3-step wizard</button>
+      <button class="btn" id="ctaTour" data-od-id="cta-start-tour">Take the UI tour</button>
+    </div>
+  </section>
+
+  <!-- 2 · MOTION -->
+  <section class="panel" id="panel-motion" role="tabpanel" aria-labelledby="tab-motion" tabindex="0" data-od-id="motion-panel">
+    <div class="mo-grid">
+      <div class="card">
+        <h2 data-od-id="motion-animates-title">What animates (full motion)</h2>
+        <p class="sub">CSS only + Cytoscape native layout. No animation libraries.</p>
+        <div class="table-scroll"><table class="mo-table">
+          <thead><tr><th scope="col">Surface</th><th scope="col">Animation</th><th scope="col">Duration</th></tr></thead>
+          <tbody>
+            <tr><td>KPI numbers</td><td>count-up on first view</td><td class="mono">≤ 900 ms</td></tr>
+            <tr><td>Evidence bars</td><td>width grow, staggered 60 ms</td><td class="mono">900 ms</td></tr>
+            <tr><td>Graph layout</td><td>Cytoscape cose easing on filter change</td><td class="mono">≈ 400 ms</td></tr>
+            <tr><td>View transitions</td><td>fade + 6 px rise on tab switch</td><td class="mono">220 ms</td></tr>
+            <tr><td>Live status dot</td><td>gentle pulse (decorative)</td><td class="mono">1.6 s loop</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h2 data-od-id="motion-reduced-title">What NEVER animates (reduced motion)</h2>
+        <p class="sub">Honors <span class="mono">prefers-reduced-motion</span> + the in-app toggle. Both modes shown here.</p>
+        <div class="table-scroll"><table class="mo-table">
+          <thead><tr><th scope="col">Rule</th><th scope="col">Reduced behavior</th></tr></thead>
+          <tbody>
+            <tr><td>Count-ups</td><td>final value rendered instantly</td></tr>
+            <tr><td>Evidence bars</td><td>final width, no transition</td></tr>
+            <tr><td>Graph re-layout</td><td>instant reposition, no easing</td></tr>
+            <tr><td>View transitions</td><td>cut, no fade/rise</td></tr>
+            <tr><td>Status dot, spinners</td><td>static — icon + text carry meaning</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-od-id="motion-demo-title">Live demo — both modes</h2>
+      <p class="sub">Toggle with the “Reduce motion” button in the header, or your OS setting. Numbers, bars and graph easing respond immediately.</p>
+      <div class="demo-stage">
+        <span class="pulse-dot" aria-hidden="true"></span><span class="hint">live demo · evidence strength</span>
+        <div class="demo-kpi" id="demoKpi" data-od-id="motion-demo-kpi">0.00</div>
+        <div class="bars" id="demoBars" data-od-id="motion-demo-bars" style="margin-top:10px"></div>
+        <div class="actions" style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
+          <button class="btn btn-primary" id="replayBtn" data-od-id="motion-replay">Replay animation</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · TUTORIAL -->
+  <section class="panel" id="panel-tutorial" role="tabpanel" aria-labelledby="tab-tutorial" tabindex="0" data-od-id="tutorial-panel">
+    <div class="card">
+      <h2 data-od-id="tour-title">First-run tour (overlay, 4 steps)</h2>
+      <p class="sub">Spotlights real UI regions. <kbd>Esc</kbd> exits anytime; focus returns to the trigger. Try it on the Home dashboard:</p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <button class="btn btn-primary" id="startTour" data-od-id="tour-start">Start guided tour</button>
+      </div>
+      <p class="hint">Steps: ① KPI cards → ② Recent analyses → ③ Evidence weights → ④ Quickstart. Progress shown as “Step n of 4” text — never color alone.</p>
+    </div>
+    <div class="card">
+      <h2 data-od-id="wizard-title">Wizard — analyze your first repo (3 steps)</h2>
+      <div class="steps" role="list" aria-label="Wizard progress">
+        <div class="step" role="listitem" id="ws1" aria-current="step"><span class="n">1</span>Run analysis</div>
+        <div class="step" role="listitem" id="ws2"><span class="n">2</span>Open the dashboard</div>
+        <div class="step" role="listitem" id="ws3"><span class="n">3</span>Read the verdict</div>
+      </div>
+      <div id="wizBody" data-od-id="wizard-body" aria-live="polite"></div>
+      <div class="wiz-nav">
+        <button class="btn" id="wizBack" data-od-id="wizard-back">Back</button>
+        <span class="spacer"></span>
+        <button class="btn btn-primary" id="wizNext" data-od-id="wizard-next">Next</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · EXAMPLES -->
+  <section class="panel" id="panel-examples" role="tabpanel" aria-labelledby="tab-examples" tabindex="0" data-od-id="examples-panel">
+    <div class="card">
+      <h2 data-od-id="examples-title">Examples gallery — story cards</h2>
+      <p class="sub">Each card is a real corpus shape. Select one for its evidence trail.</p>
+      <div class="gallery" id="gallery" data-od-id="examples-gallery"></div>
+    </div>
+  </section>
+</main>
+
+<div class="tour-mask" id="tourMask"></div>
+<div class="tour-card" id="tourCard" role="dialog" aria-modal="false" aria-labelledby="tourH" data-od-id="tour-card">
+  <div class="tour-steps" id="tourStep"></div>
+  <h3 id="tourH"></h3><p id="tourP"></p>
+  <div class="tour-actions">
+    <button class="btn" id="tourBack" data-od-id="tour-back">Back</button>
+    <span class="spacer"></span>
+    <button class="btn" id="tourSkip" data-od-id="tour-skip">Skip</button>
+    <button class="btn btn-primary" id="tourNext" data-od-id="tour-next">Next</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="modalMask" data-od-id="story-modal-mask">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" data-od-id="story-modal">
+    <div class="story-tag" id="mTag"></div>
+    <h3 id="mTitle"></h3>
+    <p class="hint" id="mSub"></p>
+    <div class="bars" id="mBars" style="margin-top:12px"></div>
+    <div class="verify" id="mNote"></div>
+    <div style="display:flex; gap:10px; margin-top:14px">
+      <span class="spacer"></span>
+      <button class="btn btn-primary" id="mClose" data-od-id="story-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site"><div class="wrap">
+  <span data-od-id="api-mapping">P24 proposal · extends P13 direction (tech-utility) · maps to <code>apps/web</code> tabs + new <code>Home/Benchmarks/Examples/Tutorial</code> routes · offline mock, no runtime network.</span>
+</div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+var reducedMq = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches:false, addEventListener:function(){}};
+var state = {tab:"home", wiz:0, tour:-1, lastFocus:null};
+try{
+  var s = JSON.parse(localStorage.getItem("rootline-p24")||"{}");
+  if(s.tab) state.tab = s.tab;
+  if(s.theme) document.documentElement.setAttribute("data-theme", s.theme);
+  if(s.motion) document.documentElement.setAttribute("data-motion", s.motion);
+}catch(e){}
+if(!document.documentElement.getAttribute("data-motion"))
+  document.documentElement.setAttribute("data-motion", reducedMq.matches ? "reduced" : "full");
+function save(){ try{localStorage.setItem("rootline-p24", JSON.stringify({tab:state.tab, theme:document.documentElement.getAttribute("data-theme"), motion:document.documentElement.getAttribute("data-motion")}));}catch(e){} }
+function toast(m){ var t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(function(){t.classList.remove("show");},1800); }
+function motionReduced(){ return document.documentElement.getAttribute("data-motion")==="reduced"; }
+
+/* tabs */
+var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+var panels = {home:document.getElementById("panel-home"), motion:document.getElementById("panel-motion"), tutorial:document.getElementById("panel-tutorial"), examples:document.getElementById("panel-examples")};
+function showTab(name, focus){
+  state.tab = name; save();
+  tabs.forEach(function(t){ var on = t.id==="tab-"+name; t.setAttribute("aria-selected", on?"true":"false"); t.tabIndex = on?0:-1; if(on&&focus) t.focus(); });
+  Object.keys(panels).forEach(function(k){ panels[k].classList.toggle("active", k===name); });
+  if(name==="home") requestAnimationFrame(runCountUps);
+  if(name==="motion") requestAnimationFrame(replayDemo);
+}
+tabs.forEach(function(t,i){
+  t.addEventListener("click", function(){ showTab(t.id.replace("tab-","")); });
+  t.addEventListener("keydown", function(e){
+    var j=null;
+    if(e.key==="ArrowRight") j=(i+1)%tabs.length;
+    if(e.key==="ArrowLeft") j=(i-1+tabs.length)%tabs.length;
+    if(j!==null){ e.preventDefault(); showTab(tabs[j].id.replace("tab-",""), true); }
+  });
+});
+
+/* theme + motion toggles */
+var themeBtn = document.getElementById("themeBtn"), motionBtn = document.getElementById("motionBtn");
+function syncToggles(){
+  var dark = document.documentElement.getAttribute("data-theme")==="dark";
+  themeBtn.textContent = dark?"Light mode":"Dark mode"; themeBtn.setAttribute("aria-pressed", dark?"true":"false");
+  var red = motionReduced();
+  motionBtn.textContent = red?"Full motion":"Reduce motion"; motionBtn.setAttribute("aria-pressed", red?"true":"false");
+  document.getElementById("motionState").textContent = "motion: "+(red?"reduced":"full");
+}
+themeBtn.addEventListener("click", function(){
+  var dark = document.documentElement.getAttribute("data-theme")==="dark";
+  document.documentElement.setAttribute("data-theme", dark?"light":"dark"); syncToggles(); save();
+});
+function setMotion(m){ document.documentElement.setAttribute("data-motion", m); syncToggles(); save(); runCountUps(true); replayDemo(); }
+motionBtn.addEventListener("click", function(){ setMotion(motionReduced()?"full":"reduced"); toast(motionReduced()?"Reduced motion on — animations instant":"Full motion on"); });
+if(reducedMq.addEventListener) reducedMq.addEventListener("change", function(e){ if(!localStorage.getItem("rootline-p24")) setMotion(e.matches?"reduced":"full"); });
+syncToggles();
+
+/* count-ups */
+function countUp(el, force){
+  var target = parseFloat(el.getAttribute("data-count")), dec = parseInt(el.getAttribute("data-dec")||"0",10);
+  if(motionReduced()){ el.textContent = target.toFixed(dec); return; }
+  var t0 = null, dur = 900;
+  function fr(ts){ if(!t0) t0=ts; var p=Math.min(1,(ts-t0)/dur), e=1-Math.pow(1-p,3);
+    el.textContent = (target*e).toFixed(dec); if(p<1) requestAnimationFrame(fr); }
+  requestAnimationFrame(fr);
+}
+function runCountUps(){ document.querySelectorAll("[data-count]").forEach(countUp); }
+
+/* evidence bars */
+var WEIGHTS = [["temporal",0.20],["structural",0.25],["execution",0.25],["test",0.15],["semantic",0.10],["contradiction ±",0.08]];
+function renderBars(host, rows, animate){
+  host.innerHTML = "";
+  rows.forEach(function(r, i){
+    var row = document.createElement("div"); row.className = "bar-row";
+    row.innerHTML = '<span class="lbl">'+r[0]+'</span><span class="bar-track"><span class="bar-fill" style="width:0%"></span></span><span class="bar-val">+'+r[1].toFixed(2)+'</span>';
+    host.appendChild(row);
+    var fill = row.querySelector(".bar-fill");
+    var pct = Math.min(100, r[1]/0.25*100);
+    if(motionReduced() || !animate){ fill.style.width = pct+"%"; }
+    else{ setTimeout(function(){ fill.style.width = pct+"%"; }, 80+i*60); }
+  });
+}
+renderBars(document.getElementById("weightBars"), WEIGHTS, true);
+var DEMO = [["temporal",0.20],["structural",0.25],["execution",0.25],["test",0.15],["semantic",0.10]];
+function replayDemo(){
+  var kpi = document.getElementById("demoKpi");
+  renderBars(document.getElementById("demoBars"), DEMO, true);
+  var target = 0.87;
+  if(motionReduced()){ kpi.textContent = target.toFixed(2); return; }
+  var t0=null;
+  function fr(ts){ if(!t0)t0=ts; var p=Math.min(1,(ts-t0)/900), e=1-Math.pow(1-p,3);
+    kpi.textContent=(target*e).toFixed(2); if(p<1) requestAnimationFrame(fr); }
+  requestAnimationFrame(fr);
+}
+document.getElementById("replayBtn").addEventListener("click", replayDemo);
+
+/* CTAs */
+document.getElementById("ctaTutorial").addEventListener("click", function(){ showTab("tutorial"); });
+document.getElementById("ctaTour").addEventListener("click", function(){ showTab("home"); setTimeout(startTour, 60); });
+
+/* tour */
+var TOUR = [
+  {sel:'[data-od-id="kpi-cards"]', h:"KPI cards at a glance", p:"Analyses, top strength, corpus MRR and language coverage. Numbers count up once — instantly under reduced motion."},
+  {sel:'[data-od-id="recent-table"]', h:"Recent analyses", p:"Newest first, with the failing test, candidate count and rank-1 status. Select a row in the real app to dive in."},
+  {sel:'[data-od-id="weights-bars"]', h:"Evidence weights", p:"The calibration behind every score. Grows from rootline.toml — this proposal hardcodes the accepted magnitudes."},
+  {sel:'[data-od-id="quickstart-cta"]', h:"Quickstart", p:"One primary action only: the 3-step wizard. The tour is the secondary path."}
+];
+function startTour(){ state.lastFocus = document.activeElement; state.tour = 0; renderTour(); }
+function endTour(){
+  state.tour = -1;
+  document.getElementById("tourMask").classList.remove("show");
+  document.getElementById("tourCard").classList.remove("show");
+  document.querySelectorAll(".tour-spot").forEach(function(el){ el.classList.remove("tour-spot"); });
+  if(state.lastFocus && state.lastFocus.focus) state.lastFocus.focus();
+}
+function renderTour(){
+  document.querySelectorAll(".tour-spot").forEach(function(el){ el.classList.remove("tour-spot"); });
+  var i = state.tour, st = TOUR[i], el = document.querySelector(st.sel);
+  document.getElementById("tourMask").classList.add("show");
+  var card = document.getElementById("tourCard"); card.classList.add("show");
+  document.getElementById("tourStep").textContent = "Step "+(i+1)+" of "+TOUR.length;
+  document.getElementById("tourH").textContent = st.h; document.getElementById("tourP").textContent = st.p;
+  document.getElementById("tourBack").disabled = i===0;
+  document.getElementById("tourNext").textContent = i===TOUR.length-1 ? "Finish" : "Next";
+  if(el){
+    el.classList.add("tour-spot");
+    var r = el.getBoundingClientRect();
+    var top = Math.min(window.innerHeight-260, Math.max(70, r.bottom+12));
+    card.style.top = top+"px";
+    card.style.left = Math.max(12, Math.min(window.innerWidth-364, r.left))+"px";
+  }
+  document.getElementById("tourNext").focus();
+}
+document.getElementById("startTour").addEventListener("click", startTour);
+document.getElementById("tourNext").addEventListener("click", function(){ if(state.tour>=TOUR.length-1) endTour(); else { state.tour++; renderTour(); } });
+document.getElementById("tourBack").addEventListener("click", function(){ if(state.tour>0){ state.tour--; renderTour(); } });
+document.getElementById("tourSkip").addEventListener("click", endTour);
+document.getElementById("tourMask").addEventListener("click", endTour);
+document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ if(state.tour>=0) endTour(); hideModal(); } });
+
+/* wizard */
+var WIZ = [
+  {t:"Run the analysis", c:"uv run rootline analyze ./repo --test-results results.xml --baseline main --max-commits 50", d:"Point Rootline at a repo snapshot plus the failing JUnit XML. Everything runs locally; the CLI writes analysis.json."},
+  {t:"Open the dashboard", c:"cd apps/web && npm run dev   # http://localhost:5173", d:"The Home dashboard lists the new analysis first. KPIs and weights update from the fresh evidence graph."},
+  {t:"Read the verdict", c:"uv run rootline explain analysis.json --sha 8a92f1", d:"Open the top candidate: supporting points, contradictions, and the suggested revert-and-rerun command."}
+];
+function renderWiz(){
+  ["ws1","ws2","ws3"].forEach(function(id,i){ document.getElementById(id).toggleAttribute("aria-current", false); });
+  document.getElementById("ws"+(state.wiz+1)).setAttribute("aria-current","step");
+  var w = WIZ[state.wiz];
+  var body = document.getElementById("wizBody");
+  body.innerHTML = "<p><b>Step "+(state.wiz+1)+" of 3 — "+w.t+"</b></p><p class='hint'>"+w.d+"</p>"+
+    "<div class='verify' tabindex='0'>"+w.c+"</div>"+
+    "<div><button class='btn' id='wizCopy'>Copy command</button></div>";
+  document.getElementById("wizBack").disabled = state.wiz===0;
+  document.getElementById("wizNext").textContent = state.wiz===2 ? "Finish" : "Next";
+  document.getElementById("wizCopy").addEventListener("click", function(){
+    var done = function(){ toast("Command copied"); };
+    if(navigator.clipboard) navigator.clipboard.writeText(w.c).then(done, function(){ toast("Copy failed — select manually"); });
+    else toast("Clipboard unavailable");
+  });
+}
+document.getElementById("wizBack").addEventListener("click", function(){ if(state.wiz>0){state.wiz--; renderWiz();} });
+document.getElementById("wizNext").addEventListener("click", function(){
+  if(state.wiz<2){state.wiz++; renderWiz();}
+  else{ toast("Wizard complete — open Candidates to verify"); showTab("home"); }
+});
+renderWiz();
+
+/* examples gallery */
+var STORIES = [
+  {tag:"python · rank 1", title:"Basic Python regression", sub:"regression-01 · 2 candidates · top strength 0.52",
+   bars:[["structural",0.13],["test",0.15],["semantic",0.07],["temporal",0.20]],
+   note:"Why it matters: the minimal shape — one suspect (8a92f1 ‘tweak create user lookup’), one weak rival. Shows the ranking at its simplest.\nVerdict: revert 8a92f1, rerun test_create_user."},
+  {tag:"typescript · twin", title:"TypeScript twin case", sub:"regression-04 · checkout coupon · top strength 0.57",
+   bars:[["structural",0.18],["execution",0.14],["test",0.12],["semantic",0.10]],
+   note:"Why it matters: proves the pipeline is language-agnostic — TS import graphs feed the same five evidence kinds.\nVerdict: same reading pattern as Python, different parser."},
+  {tag:"structural · 2 hops", title:"Culprit at 2 hops, no semantic overlap", sub:"structural +0.25 carries the verdict alone",
+   bars:[["structural",0.25],["test",0.15],["temporal",0.12],["semantic",0.00]],
+   note:"Why it matters: commit message shares zero tokens with the failure, yet imports link it in 2 hops. Semantic reads 0.00 — structure still convicts.\nVerdict: trust the graph, not the message."},
+  {tag:"contradiction −0.08", title:"Strong suspect, honest doubt", sub:"top 0.87 with deployment config changed",
+   bars:[["execution",0.25],["structural",0.25],["temporal",0.20],["test",0.15],["semantic",0.10]],
+   note:"Why it matters: the headline case — 0.87 strength with a recorded −0.08 contradiction (f41c9d deploy config). The report shows doubt instead of hiding it.\nVerdict: revert 8a92f1 first; if green, exonerate the deploy."}
+];
+var gal = document.getElementById("gallery");
+STORIES.forEach(function(st, i){
+  var b = document.createElement("button");
+  b.className = "story"; b.setAttribute("data-od-id", "story-card-"+(i+1));
+  b.setAttribute("aria-haspopup","dialog");
+  b.innerHTML = '<div class="story-top"><div class="story-tag">'+st.tag+'</div><h3>'+st.title+'</h3><p>'+st.sub+'</p></div>'+
+    '<div class="story-foot"><span>evidence inside →</span><span class="spacer"></span><span>0'+(i+1)+' / 04</span></div>';
+  b.addEventListener("click", function(){ openStory(i); });
+  gal.appendChild(b);
+});
+var lastStoryFocus = null;
+function openStory(i){
+  lastStoryFocus = document.activeElement;
+  var st = STORIES[i];
+  document.getElementById("mTag").textContent = st.tag;
+  document.getElementById("mTitle").textContent = st.title;
+  document.getElementById("mSub").textContent = st.sub;
+  renderBars(document.getElementById("mBars"), st.bars, true);
+  document.getElementById("mNote").textContent = st.note;
+  document.getElementById("modalMask").classList.add("show");
+  document.getElementById("mClose").focus();
+}
+function hideModal(){
+  document.getElementById("modalMask").classList.remove("show");
+  if(lastStoryFocus && lastStoryFocus.focus) lastStoryFocus.focus();
+}
+document.getElementById("mClose").addEventListener("click", hideModal);
+document.getElementById("modalMask").addEventListener("click", function(e){ if(e.target===this) hideModal(); });
+
+/* init */
+showTab(panels[state.tab] ? state.tab : "home");
+runCountUps();
+</script>
+</body>
+</html>

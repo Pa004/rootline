@@ -10,9 +10,9 @@ import { useUi } from "./store";
 afterEach(() => {
   cleanup();
   localStorage.removeItem("rootline-theme");
-  useUi.setState({ tab: "candidates", view: "home", selectedSha: null, theme: "dark" });
+  localStorage.removeItem("rootline-motion");
+  useUi.setState({ tab: "candidates", view: "home", selectedSha: null, theme: "dark", reduceMotion: false });
   document.documentElement.dataset.theme = "dark";
-  window.location.hash = "";
 });
 
 function Providers({ children }: { children: ReactNode }) {
@@ -90,5 +90,46 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "switch to dark mode" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "switch to dark mode" }));
     expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("reduce motion shows final values instantly", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "reduce motion" }));
+    expect(screen.getByRole("button", { name: "enable motion" })).toBeInTheDocument();
+    expect(localStorage.getItem("rootline-motion")).toBe("reduced");
+    expect(screen.getByText("1.00")).toBeInTheDocument();
+  });
+
+  it("guided tour walks four steps and closes", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Start guided tour" }));
+    expect(screen.getByText("Step 1 of 4")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("Step 2 of 4")).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByText(/Step \d of 4/)).not.toBeInTheDocument();
+  });
+
+  it("tutorial wizard advances and examples select trails", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Tutorial" }));
+    expect(screen.getByText("1. Run your tests to JUnit")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByText("2. Analyze the repo")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Examples" }));
+    fireEvent.click(screen.getByText("The two-hop culprit"));
+    expect(screen.getByText(/Ranked #1 on structural evidence/)).toBeInTheDocument();
   });
 });

@@ -5,6 +5,7 @@ export type Theme = "dark" | "light";
 export type ViewId = "home" | "analysis" | "benchmarks" | "examples" | "tutorial";
 
 const THEME_KEY = "rootline-theme";
+const MOTION_KEY = "rootline-motion";
 const VIEWS: ViewId[] = ["home", "analysis", "benchmarks", "examples", "tutorial"];
 
 function initialTheme(): Theme {
@@ -13,6 +14,20 @@ function initialTheme(): Theme {
   } catch {
     return "dark";
   }
+}
+
+/** Full motion unless the OS asks to reduce it or the user overrode it. */
+export function motionOK(): boolean {
+  try {
+    if (localStorage.getItem(MOTION_KEY) === "reduced") return false;
+    if (localStorage.getItem(MOTION_KEY) === "full") return true;
+  } catch {
+    /* ignore */
+  }
+  return (
+    typeof window.matchMedia !== "function" ||
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 export function viewFromHash(): ViewId {
@@ -25,10 +40,12 @@ interface UiState {
   view: ViewId;
   selectedSha: string | null;
   theme: Theme;
+  reduceMotion: boolean;
   setTab: (tab: TabId) => void;
   setView: (view: ViewId) => void;
   select: (sha: string | null) => void;
   toggleTheme: () => void;
+  toggleMotion: () => void;
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -36,6 +53,7 @@ export const useUi = create<UiState>()((set) => ({
   view: viewFromHash(),
   selectedSha: null,
   theme: initialTheme(),
+  reduceMotion: !motionOK(),
   setTab: (tab) => set({ tab }),
   setView: (view) => {
     window.location.hash = `#/${view}`;
@@ -51,5 +69,15 @@ export const useUi = create<UiState>()((set) => ({
         /* private mode: theme just won't persist */
       }
       return { theme };
+    }),
+  toggleMotion: () =>
+    set((state) => {
+      const reduceMotion = !state.reduceMotion;
+      try {
+        localStorage.setItem(MOTION_KEY, reduceMotion ? "reduced" : "full");
+      } catch {
+        /* private mode: choice just won't persist */
+      }
+      return { reduceMotion };
     }),
 }));

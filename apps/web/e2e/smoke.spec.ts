@@ -40,3 +40,11 @@ test("keyboard selects a candidate row", async ({ page }) => {
   await page.getByRole("button", { name: "Report" }).click();
   await expect(page.getByText("Contradictory evidence")).toBeVisible();
 });
+
+test("guided tour opens and escapes", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Start guided tour" }).click();
+  await expect(page.getByText("Step 1 of 4")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Step 1 of 4")).not.toBeVisible();
+});

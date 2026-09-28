@@ -79,11 +79,12 @@ export function createGraph(
   container: HTMLElement,
   elements: ReturnType<typeof buildElements>,
   theme: GraphTheme = DARK_GRAPH,
+  animate = true,
 ) {
   return cytoscape({
     container,
     elements,
-    layout: { name: "cose", animate: false },
+    layout: { name: "cose", animate, animationDuration: 400 },
     style: [
       {
         selector: "node",

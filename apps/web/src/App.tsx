@@ -28,7 +28,8 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 export default function App() {
-  const { tab, setTab, view, setView, selectedSha, theme, toggleTheme } = useUi();
+  const { tab, setTab, view, setView, selectedSha, theme, toggleTheme, reduceMotion, toggleMotion } =
+    useUi();
   const { analysis, live } = useAnalysis();
   const selected = analysis.candidates.find((c) => c.commit_sha === selectedSha);
   useEffect(() => {
@@ -54,17 +55,38 @@ export default function App() {
         <div>
           <h1 className="text-xl font-bold">Rootline</h1>
           <p className="text-sm text-(--muted)">
-            Trace the change. Find the cause{live ? " · live" : " · sample data"}.
+            Trace the change. Find the cause{live ? (
+              <>
+                {" "}·{" "}
+                <span className="live-dot inline-block" aria-hidden="true">
+                  ●
+                </span>{" "}
+                live
+              </>
+            ) : (
+              " · sample data"
+            )}
+            .
           </p>
         </div>
-        <button
-          onClick={toggleTheme}
-          aria-pressed={theme === "light"}
-          aria-label={`switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          className="rounded bg-(--surface-2) px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          {theme === "dark" ? "Light mode" : "Dark mode"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={toggleMotion}
+            aria-pressed={reduceMotion}
+            aria-label={reduceMotion ? "enable motion" : "reduce motion"}
+            className="rounded bg-(--surface-2) px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            {reduceMotion ? "Motion on" : "Reduce motion"}
+          </button>
+          <button
+            onClick={toggleTheme}
+            aria-pressed={theme === "light"}
+            aria-label={`switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            className="rounded bg-(--surface-2) px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
+        </div>
       </header>
       <nav aria-label="sections" className="mt-4 flex flex-wrap gap-2">
         {VIEWS.map((v) => (
@@ -97,21 +119,23 @@ export default function App() {
         </nav>
       )}
       <main id="main-content" tabIndex={-1} className="mt-4">
-        {view === "home" && <Dashboard go={setView} />}
-        {view === "analysis" && tab === "candidates" && (
-          <CandidatesTable candidates={analysis.candidates} />
-        )}
-        {view === "analysis" && tab === "graph" && (
-          <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
-            <GraphExplorer />
-          </Suspense>
-        )}
-        {view === "analysis" && tab === "report" && (
-          <Explanation candidate={selected ?? analysis.candidates[0]} />
-        )}
-        {view === "benchmarks" && <Benchmarks />}
-        {view === "examples" && <Examples />}
-        {view === "tutorial" && <Tutorial />}
+        <div key={`${view}-${tab}`} className={reduceMotion ? undefined : "animate-view"}>
+          {view === "home" && <Dashboard go={setView} />}
+          {view === "analysis" && tab === "candidates" && (
+            <CandidatesTable candidates={analysis.candidates} />
+          )}
+          {view === "analysis" && tab === "graph" && (
+            <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
+              <GraphExplorer />
+            </Suspense>
+          )}
+          {view === "analysis" && tab === "report" && (
+            <Explanation candidate={selected ?? analysis.candidates[0]} />
+          )}
+          {view === "benchmarks" && <Benchmarks />}
+          {view === "examples" && <Examples />}
+          {view === "tutorial" && <Tutorial />}
+        </div>
       </main>
     </div>
   );

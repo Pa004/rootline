@@ -1,16 +1,35 @@
+import { useState } from "react";
 import { CORPUS } from "../data/corpus";
 
 export function Examples() {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = CORPUS.find((c) => c.id === selectedId);
   return (
     <div>
       <h2 className="text-lg font-semibold">Examples</h2>
       <p className="text-sm text-(--muted)">
         Planted regressions with known ground truth — run them with{" "}
-        <code className="font-mono">rootline benchmark</code>.
+        <code className="font-mono">rootline benchmark</code>. Select one for its evidence
+        trail.
       </p>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <div className="mt-4 grid gap-3 md:grid-cols-2" role="list">
         {CORPUS.map((c) => (
-          <article key={c.id} className="rounded border border-(--border) bg-(--surface) p-4">
+          <article
+            key={c.id}
+            role="listitem"
+            aria-current={c.id === selectedId ? true : undefined}
+            onClick={() => setSelectedId(c.id === selectedId ? null : c.id)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setSelectedId(c.id === selectedId ? null : c.id);
+              }
+            }}
+            tabIndex={0}
+            className={`cursor-pointer rounded border p-4 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              c.id === selectedId ? "border-(--text)" : "border-(--border)"
+            } bg-(--surface)`}
+          >
             <p className="font-mono text-xs text-(--muted)">
               {c.id} · {c.language}
             </p>
@@ -22,6 +41,22 @@ export function Examples() {
           </article>
         ))}
       </div>
+      {selected && (
+        <section
+          aria-label={`evidence trail for ${selected.id}`}
+          aria-live="polite"
+          className="mt-4 rounded border border-(--border) bg-(--surface) p-4"
+        >
+          <h3 className="font-semibold">
+            {selected.id} — {selected.title}
+          </h3>
+          <p className="mt-1 font-mono text-sm">culprit: {selected.culprit}</p>
+          <p className="mt-1 text-sm">{selected.verdict}</p>
+          <p className="mt-1 text-sm text-(--muted)">
+            signals: {selected.signals.join(" + ")}
+          </p>
+        </section>
+      )}
     </div>
   );
 }
