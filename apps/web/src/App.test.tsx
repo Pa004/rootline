@@ -5,8 +5,14 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import App from "./App";
 import { SAMPLE } from "./data/sample";
+import { useUi } from "./store";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  localStorage.removeItem("rootline-theme");
+  useUi.setState({ tab: "candidates", selectedSha: null, theme: "dark" });
+  document.documentElement.dataset.theme = "dark";
+});
 
 function Providers({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
