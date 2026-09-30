@@ -21,6 +21,14 @@ const VIEWS: { id: ViewId; label: string }[] = [
   { id: "tutorial", label: "Tutorial" },
 ];
 
+const VIEW_SUBTITLES: Record<ViewId, string> = {
+  home: "Live demo · one planted regression, fully worked.",
+  analysis: "Commits ranked by evidence strength (0–1, higher means stronger).",
+  benchmarks: "How often the true culprit ranks first. MRR averages 1 ÷ rank.",
+  examples: "Planted regressions with known answers — select one.",
+  tutorial: "Three commands from zero to verdict, about five minutes.",
+};
+
 const TABS: { id: TabId; label: string }[] = [
   { id: "candidates", label: "Candidates" },
   { id: "graph", label: "Graph explorer" },
@@ -44,7 +52,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", sync);
   }, []);
   return (
-    <div className="mx-auto max-w-6xl p-4 text-(--text)">
+    <div className="w-full px-4 text-(--text) md:px-8">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:rounded focus:bg-(--text) focus:px-3 focus:py-1 focus:text-(--bg)"
@@ -119,6 +127,7 @@ export default function App() {
         </nav>
       )}
       <main id="main-content" tabIndex={-1} className="mt-4">
+        <p className="mb-3 text-sm text-(--muted)">{VIEW_SUBTITLES[view]}</p>
         <div key={`${view}-${tab}`} className={reduceMotion ? undefined : "animate-view"}>
           {view === "home" && <Dashboard go={setView} />}
           {view === "analysis" && tab === "candidates" && (

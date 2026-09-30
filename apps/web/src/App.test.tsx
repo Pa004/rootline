@@ -11,8 +11,8 @@ afterEach(() => {
   cleanup();
   localStorage.removeItem("rootline-theme");
   localStorage.removeItem("rootline-motion");
-  useUi.setState({ tab: "candidates", view: "home", selectedSha: null, theme: "dark", reduceMotion: false });
-  document.documentElement.dataset.theme = "dark";
+  useUi.setState({ tab: "candidates", view: "home", selectedSha: null, theme: "light", reduceMotion: false });
+  document.documentElement.dataset.theme = "light";
 });
 
 function Providers({ children }: { children: ReactNode }) {
@@ -79,17 +79,18 @@ describe("App", () => {
     expect(SAMPLE.candidates.length).toBeGreaterThan(0);
   });
 
-  it("toggles light mode and persists the choice", () => {
+  it("toggles theme and persists the choice", () => {
     render(
       <Providers>
         <App />
       </Providers>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "switch to light mode" }));
     expect(document.documentElement.dataset.theme).toBe("light");
-    expect(screen.getByRole("button", { name: "switch to dark mode" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "switch to dark mode" }));
     expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(screen.getByRole("button", { name: "switch to light mode" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "switch to light mode" }));
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
 
   it("reduce motion shows final values instantly", () => {

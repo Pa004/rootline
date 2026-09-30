@@ -76,6 +76,10 @@ export function GraphExplorer({
           </label>
         ))}
       </fieldset>
+      <p className="mt-1 text-sm text-(--muted)">
+        Diamonds are commits, rounded squares files, circles symbols, octagons
+        tests. Click a node for detail; uncheck types to filter.
+      </p>
       <div
         ref={containerRef}
         role="application"

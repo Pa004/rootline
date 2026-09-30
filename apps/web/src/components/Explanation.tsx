@@ -26,13 +26,21 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
           <h3 className="mt-4 font-semibold">Contradictory evidence</h3>
           <ul>
             {contradicting.map((e) => (
-              <li key={e.kind} className="text-red-600 dark:text-red-300">
+              <li key={e.kind} className="text-red-700 dark:text-red-300">
                 - [{e.kind}] {e.detail} ({e.points.toFixed(2)})
               </li>
             ))}
           </ul>
         </>
       )}
+      <h3 className="mt-4 font-semibold">Suggested verification</h3>
+      <p className="text-sm">
+        Revert commit <code className="font-mono">{candidate.commit_sha.slice(0, 12)}</code>{" "}
+        in a throwaway copy and rerun the failing test:
+      </p>
+      <pre className="mt-2 max-w-3xl overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm">
+        rootline verify {candidate.commit_sha.slice(0, 12)} --test &lt;failing-test&gt;
+      </pre>
     </section>
   );
 }

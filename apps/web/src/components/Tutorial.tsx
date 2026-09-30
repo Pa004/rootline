@@ -34,8 +34,13 @@ export function Tutorial() {
   const total = STEPS.length;
   const current = STEPS[step];
   return (
-    <div>
+    <div className="max-w-3xl">
       <h2 className="text-lg font-semibold">Analyze your first repo</h2>
+      <p className="mt-1 rounded border border-(--border) bg-(--surface) p-3 text-sm">
+        You need: <strong>Python 3.13+</strong>, <strong>git</strong>, and a{" "}
+        <strong>JUnit XML</strong> report from your test run. No accounts, no
+        servers, no credit card.
+      </p>
       <p className="text-sm text-(--muted)">
         Step {step + 1} of {total}
       </p>

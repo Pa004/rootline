@@ -19,10 +19,11 @@ test("candidates table renders with scores", async ({ page }) => {
 
 test("theme toggle switches data-theme", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "switch to light mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.getByRole("button", { name: "switch to dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "switch to light mode" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
 test("graph explorer renders cytoscape canvas", async ({ page }) => {

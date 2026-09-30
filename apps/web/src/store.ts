@@ -10,9 +10,9 @@ const VIEWS: ViewId[] = ["home", "analysis", "benchmarks", "examples", "tutorial
 
 function initialTheme(): Theme {
   try {
-    return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+    return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
   } catch {
-    return "dark";
+    return "light";
   }
 }
 

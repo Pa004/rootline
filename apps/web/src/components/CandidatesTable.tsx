@@ -39,6 +39,9 @@ export function ScoreBar({ candidate }: { candidate: CandidateScore }) {
 
 export function CandidatesTable({ candidates }: { candidates: CandidateScore[] }) {
   const { selectedSha, select } = useUi();
+  if (candidates.length === 0) {
+    return <p className="text-(--muted)">No candidates in this analysis yet.</p>;
+  }
   return (
     <table className="w-full border-collapse text-sm">
       <caption className="sr-only">
