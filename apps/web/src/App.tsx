@@ -44,7 +44,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", sync);
   }, []);
   return (
-    <div className="mx-auto max-w-5xl p-4 text-(--text)">
+    <div className="mx-auto max-w-6xl p-4 text-(--text)">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:rounded focus:bg-(--text) focus:px-3 focus:py-1 focus:text-(--bg)"
@@ -132,11 +132,26 @@ export default function App() {
           {view === "analysis" && tab === "report" && (
             <Explanation candidate={selected ?? analysis.candidates[0]} />
           )}
-          {view === "benchmarks" && <Benchmarks />}
-          {view === "examples" && <Examples />}
-          {view === "tutorial" && <Tutorial />}
+        {view === "benchmarks" && <Benchmarks />}
+        {view === "examples" && <Examples />}
+        {view === "tutorial" && <Tutorial />}
         </div>
       </main>
+      <footer className="mt-10 flex flex-wrap gap-x-4 gap-y-1 border-t border-(--border) pt-3 text-sm text-(--muted)">
+        <span>Rootline · local-first causal analysis</span>
+        <a className="hover:underline" href="https://github.com/Pa004/rootline">
+          GitHub
+        </a>
+        <a className="hover:underline" href="https://pypi.org/project/rootline/">
+          PyPI
+        </a>
+        <a
+          className="hover:underline"
+          href="https://rootline-api.pablodo004.workers.dev/api/v1/analyses"
+        >
+          Demo API
+        </a>
+      </footer>
     </div>
   );
 }
