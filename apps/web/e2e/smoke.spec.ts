@@ -49,3 +49,13 @@ test("guided tour opens and escapes", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(page.getByText("Step 1 of 4")).not.toBeVisible();
 });
+
+test("command palette navigates", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "open command palette" }).click();
+  await expect(page.getByRole("dialog", { name: "command palette" })).toBeVisible();
+  await page.getByLabel("command search").fill("bench");
+  await expect(page.getByText("Go to Benchmarks")).toBeVisible();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("h1", { hasText: "Benchmarks" })).toBeVisible();
+});

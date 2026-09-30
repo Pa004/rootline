@@ -4,6 +4,11 @@ import { useUi } from "../store";
 const RADIUS = 52;
 const CIRCUMFERENCE = Math.PI * RADIUS;
 
+/** Data-reactive arc color: amber below 0.33, theme accent above. */
+export function scoreHue(score: number): "low" | "high" {
+  return score < 0.33 ? "low" : "high";
+}
+
 /** Evidence-strength gauge (SVG arc). Sweeps unless motion is reduced. */
 export function ScoreGauge({ score, label }: { score: number; label: string }) {
   const reduceMotion = useUi((s) => s.reduceMotion);
@@ -37,7 +42,7 @@ export function ScoreGauge({ score, label }: { score: number; label: string }) {
         <path
           d="M 8 60 A 52 52 0 0 1 112 60"
           fill="none"
-          stroke="var(--text)"
+          stroke={scoreHue(score) === "low" ? "#d97706" : "var(--accent)"}
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={CIRCUMFERENCE.toFixed(1)}

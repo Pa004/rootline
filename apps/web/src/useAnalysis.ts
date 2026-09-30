@@ -12,6 +12,7 @@ export function useAnalysis(): { analysis: Analysis; live: boolean } {
     queryFn: () => fetchAnalysis(ANALYSIS_ID),
     enabled,
     retry: false,
+    refetchInterval: 30000,
   });
   if (!enabled || query.isError || !query.data) {
     return { analysis: SAMPLE, live: false };

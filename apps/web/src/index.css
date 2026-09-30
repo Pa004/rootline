@@ -19,6 +19,10 @@
   --border: #27272a;
   --graph-label: #e4e4e7;
   --graph-edge: #52525b;
+  --accent: #5eead4;
+  --accent-ink: #0f766e;
+  --mesh-a: rgb(45 212 191 / 0.1);
+  --mesh-b: rgb(56 189 248 / 0.07);
 }
 
 :root[data-theme="light"] {
@@ -31,11 +35,36 @@
   --border: #e4e4e7;
   --graph-label: #27272a;
   --graph-edge: #a1a1aa;
+  --accent: #0f766e;
+  --accent-ink: #0f766e;
+  --mesh-a: rgb(15 118 110 / 0.08);
+  --mesh-b: rgb(37 99 235 / 0.06);
 }
 
 body {
   background-color: var(--bg);
   color: var(--text);
+}
+
+.backdrop-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42rem 26rem at 12% -6%, var(--mesh-a), transparent 65%),
+    radial-gradient(38rem 24rem at 88% 4%, var(--mesh-b), transparent 60%),
+    radial-gradient(30rem 30rem at 50% 110%, var(--mesh-a), transparent 60%);
+}
+
+.backdrop-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.5;
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
 }
 
 @keyframes view-rise {
@@ -81,6 +110,38 @@ body {
   animation: bar-grow 900ms ease-out both;
 }
 
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: card-in 450ms ease-out both;
+}
+
+@keyframes scroll-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-on-scroll {
+  animation: scroll-reveal 600ms ease-out both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 60%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -88,4 +149,12 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* In-app override mirrors the media query (OS setting alone is not enough). */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
 }

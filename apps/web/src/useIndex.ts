@@ -8,6 +8,7 @@ export function useIndex(): IndexEntry[] {
     queryFn: fetchIndex,
     enabled,
     retry: false,
+    refetchInterval: 30000,
   });
   if (!enabled || query.isError || !query.data) {
     return [

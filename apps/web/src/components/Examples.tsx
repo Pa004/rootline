@@ -26,7 +26,7 @@ export function Examples() {
               }
             }}
             tabIndex={0}
-            className={`cursor-pointer rounded border p-4 focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            className={`reveal-on-scroll cursor-pointer rounded border p-4 focus-visible:outline-2 focus-visible:outline-offset-2 ${
               c.id === selectedId ? "border-(--text)" : "border-(--border)"
             } bg-(--surface)`}
           >

@@ -1,7 +1,9 @@
 import { Suspense, lazy, useEffect, useState } from "react";
+import { Command } from "lucide-react";
 import { useUi, viewFromHash, type ViewId } from "./store";
 import { CandidatesTable } from "./components/CandidatesTable";
 import { Explanation } from "./components/Explanation";
+import { Palette } from "./components/Palette";
 import { Sidebar } from "./components/Sidebar";
 import { Dashboard } from "./components/Dashboard";
 import { Benchmarks } from "./components/Benchmarks";
@@ -39,12 +41,26 @@ const VIEW_TITLES: Record<ViewId, string> = {
 export default function App() {
   const { tab, setTab, view, setView, selectedSha, theme, toggleTheme, reduceMotion, toggleMotion } =
     useUi();
+  const setPalette = useUi((s) => s.setPalette);
   const { analysis, live } = useAnalysis();
   const selected = analysis.candidates.find((c) => c.commit_sha === selectedSha);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.motion = reduceMotion ? "reduced" : "full";
+  }, [reduceMotion]);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPalette(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [setPalette]);
   useEffect(() => {
     const sync = () => {
       const hashed = viewFromHash();
@@ -55,6 +71,7 @@ export default function App() {
   }, []);
   return (
     <div className="flex min-h-screen bg-(--bg) font-sans text-(--text)">
+      <div className="backdrop-scene" aria-hidden="true" />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-40 focus:rounded focus:bg-(--text) focus:px-3 focus:py-1 focus:text-(--bg)"
@@ -71,7 +88,9 @@ export default function App() {
         toggleMotion={toggleMotion}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        onPalette={() => setPalette(true)}
       />
+      <Palette />
       <div className="min-w-0 flex-1">
         <div className="w-full px-4 md:px-8">
           <div className="flex items-center gap-3 py-3 md:hidden">
@@ -83,6 +102,13 @@ export default function App() {
               Menu
             </button>
             <p className="font-display text-lg font-bold">Rootline</p>
+            <button
+              onClick={() => setPalette(true)}
+              aria-label="open command palette"
+              className="ml-auto rounded bg-(--surface-2) px-3 py-1 text-sm"
+            >
+              <Command size={15} aria-hidden="true" className="inline" /> K
+            </button>
           </div>
           <header className="pt-4">
             <h1 className="font-display text-2xl font-bold">{VIEW_TITLES[view]}</h1>

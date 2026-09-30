@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Database, Languages, Scale, Trophy, type LucideIcon } from "lucide-react";
 import { useIndex } from "../useIndex";
 import { useAnalysis } from "../useAnalysis";
 import { useCountUp } from "../motion";
@@ -19,10 +20,28 @@ const WEIGHTS: [string, number][] = [
 
 const QUICKSTART = "rootline analyze ./repo --test-results results.xml --baseline main";
 
-function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Kpi({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  index,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: LucideIcon;
+  index: number;
+}) {
   return (
-    <div className="rounded border border-(--border) bg-(--surface) p-4">
-      <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">{label}</p>
+    <div
+      className="rise-in rounded border border-(--border) bg-(--surface) p-4"
+      style={{ animationDelay: `${index * 70}ms` }}
+    >
+      <p className="flex items-center gap-1 text-sm text-(--muted)">
+        <Icon size={14} aria-hidden="true" />
+        {label}
+      </p>
       <p className="mt-1 font-mono text-2xl">{value}</p>
       {sub && <p className="truncate text-xs text-(--muted)" title={sub}>{sub}</p>}
     </div>
@@ -45,8 +64,9 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
       {top && (
         <section
           aria-label="verdict"
-          className="flex flex-col gap-4 rounded border border-(--border) bg-(--surface) p-5 md:flex-row md:items-center"
+          className="@container rounded border border-(--border) bg-(--surface) p-5"
         >
+          <div className="flex flex-col gap-4 @min-[560px]:flex-row @min-[560px]:items-center">
           <ScoreGauge score={top.score} label="evidence strength" />
           <div className="min-w-0 flex-1">
             <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">
@@ -70,6 +90,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
             >
               Open analysis
             </button>
+          </div>
           </div>
         </section>
       )}
@@ -155,15 +176,17 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
         </div>
 
         <div className="space-y-3 lg:col-span-4">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-1 xl:grid-cols-2">
-            <Kpi label="Analyses" value={analyses} sub={live ? "live" : "sample data"} />
-            <Kpi
-              label="Corpus MRR"
-              value={mrr}
-              sub={`${BENCHMARK_SUMMARY.cases} cases · top-1 ${BENCHMARK_SUMMARY.top1.toFixed(2)}`}
-            />
-            <Kpi label="Languages" value="2" sub="Python + TypeScript" />
-            <Kpi label="Evidence kinds" value="6" sub="for and against" />
+          <div className="grid grid-cols-2 gap-3">
+          <Kpi label="Analyses" value={analyses} sub={live ? "live" : "sample data"} icon={Database} index={0} />
+          <Kpi
+            label="Corpus MRR"
+            value={mrr}
+            sub={`${BENCHMARK_SUMMARY.cases} cases · top-1 ${BENCHMARK_SUMMARY.top1.toFixed(2)}`}
+            icon={Trophy}
+            index={1}
+          />
+          <Kpi label="Languages" value="2" sub="Python + TypeScript" icon={Languages} index={2} />
+          <Kpi label="Evidence kinds" value="6" sub="for and against" icon={Scale} index={3} />
           </div>
 
           <section

@@ -44,7 +44,7 @@ export function Tutorial() {
       <p className="text-sm text-(--muted)">
         Step {step + 1} of {total}
       </p>
-      <div className="mt-4 rounded border border-(--border) bg-(--surface) p-4">
+      <div className="reveal-on-scroll mt-4 rounded border border-(--border) bg-(--surface) p-4">
         <h3 className="font-display font-bold">{current.title}</h3>
         <pre
           tabIndex={0}

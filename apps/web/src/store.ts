@@ -41,11 +41,13 @@ interface UiState {
   selectedSha: string | null;
   theme: Theme;
   reduceMotion: boolean;
+  paletteOpen: boolean;
   setTab: (tab: TabId) => void;
   setView: (view: ViewId) => void;
   select: (sha: string | null) => void;
   toggleTheme: () => void;
   toggleMotion: () => void;
+  setPalette: (open: boolean) => void;
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -54,12 +56,14 @@ export const useUi = create<UiState>()((set) => ({
   selectedSha: null,
   theme: initialTheme(),
   reduceMotion: !motionOK(),
+  paletteOpen: false,
   setTab: (tab) => set({ tab }),
   setView: (view) => {
     window.location.hash = `#/${view}`;
     set({ view });
   },
   select: (selectedSha) => set({ selectedSha }),
+  setPalette: (paletteOpen) => set({ paletteOpen }),
   toggleTheme: () =>
     set((state) => {
       const theme: Theme = state.theme === "dark" ? "light" : "dark";
