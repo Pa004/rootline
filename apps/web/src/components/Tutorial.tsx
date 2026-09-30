@@ -35,7 +35,7 @@ export function Tutorial() {
   const current = STEPS[step];
   return (
     <div className="max-w-3xl">
-      <h2 className="text-lg font-semibold">Analyze your first repo</h2>
+      <h2 className="text-lg font-display font-bold">Analyze your first repo</h2>
       <p className="mt-1 rounded border border-(--border) bg-(--surface) p-3 text-sm">
         You need: <strong>Python 3.13+</strong>, <strong>git</strong>, and a{" "}
         <strong>JUnit XML</strong> report from your test run. No accounts, no
@@ -45,8 +45,12 @@ export function Tutorial() {
         Step {step + 1} of {total}
       </p>
       <div className="mt-4 rounded border border-(--border) bg-(--surface) p-4">
-        <h3 className="font-semibold">{current.title}</h3>
-        <pre className="mt-2 overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm">
+        <h3 className="font-display font-bold">{current.title}</h3>
+        <pre
+          tabIndex={0}
+          aria-label={`command: ${current.command}`}
+          className="mt-2 overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm"
+        >
           {current.command}
         </pre>
         <p className="mt-1 text-sm text-(--muted)">{current.note}</p>

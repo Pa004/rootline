@@ -6,7 +6,7 @@ export function Examples() {
   const selected = CORPUS.find((c) => c.id === selectedId);
   return (
     <div>
-      <h2 className="text-lg font-semibold">Examples</h2>
+      <h2 className="text-lg font-display font-bold">Examples</h2>
       <p className="text-sm text-(--muted)">
         Planted regressions with known ground truth — run them with{" "}
         <code className="font-mono">rootline benchmark</code>. Select one for its evidence
@@ -33,7 +33,7 @@ export function Examples() {
             <p className="font-mono text-xs text-(--muted)">
               {c.id} · {c.language}
             </p>
-            <h3 className="font-semibold">{c.title}</h3>
+            <h3 className="font-display font-bold">{c.title}</h3>
             <p className="mt-1 text-sm">{c.story}</p>
             <p className="mt-2 font-mono text-xs">
               culprit: {c.culprit} · signals: {c.signals.join(", ")}
@@ -47,7 +47,7 @@ export function Examples() {
           aria-live="polite"
           className="mt-4 rounded border border-(--border) bg-(--surface) p-4"
         >
-          <h3 className="font-semibold">
+          <h3 className="font-display font-bold">
             {selected.id} — {selected.title}
           </h3>
           <p className="mt-1 font-mono text-sm">culprit: {selected.culprit}</p>

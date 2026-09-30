@@ -7,7 +7,7 @@ async function goAnalysis(page: Page) {
 
 test("dashboard lands with KPIs", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Rootline" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Corpus MRR")).toBeVisible();
 });
 

@@ -12,7 +12,7 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
         {candidate.commit_sha.slice(0, 12)} — {candidate.score.toFixed(2)}
       </h2>
       <p className="text-(--muted)">Evidence strength, not a probability.</p>
-      <h3 className="mt-4 font-semibold">Evidence</h3>
+      <h3 className="mt-4 font-display font-bold">Evidence</h3>
       <ul>
         {supporting.map((e) => (
           <li key={e.kind} className="text-emerald-700 dark:text-emerald-300">
@@ -23,7 +23,7 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
       </ul>
       {contradicting.length > 0 && (
         <>
-          <h3 className="mt-4 font-semibold">Contradictory evidence</h3>
+          <h3 className="mt-4 font-display font-bold">Contradictory evidence</h3>
           <ul>
             {contradicting.map((e) => (
               <li key={e.kind} className="text-red-700 dark:text-red-300">
@@ -33,12 +33,16 @@ export function Explanation({ candidate }: { candidate: CandidateScore | undefin
           </ul>
         </>
       )}
-      <h3 className="mt-4 font-semibold">Suggested verification</h3>
+      <h3 className="mt-4 font-display font-bold">Suggested verification</h3>
       <p className="text-sm">
         Revert commit <code className="font-mono">{candidate.commit_sha.slice(0, 12)}</code>{" "}
         in a throwaway copy and rerun the failing test:
       </p>
-      <pre className="mt-2 max-w-3xl overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm">
+      <pre
+        tabIndex={0}
+        aria-label="suggested verify command"
+        className="mt-2 max-w-3xl overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm"
+      >
         rootline verify {candidate.commit_sha.slice(0, 12)} --test &lt;failing-test&gt;
       </pre>
     </section>

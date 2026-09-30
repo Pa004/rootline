@@ -35,6 +35,17 @@ describe("App", () => {
     expect(screen.getByText("Analyze your first repo")).toBeInTheDocument();
   });
 
+  it("shows the verdict hero with gauge and quickstart", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    expect(screen.getByText("Most probable cause")).toBeInTheDocument();
+    expect(screen.getByLabelText(/evidence strength 0\.30/)).toBeInTheDocument();
+    expect(screen.getByText("Also suspected")).toBeInTheDocument();
+  });
+
   it("renders ranked candidates with scores", () => {
     render(
       <Providers>
