@@ -36,15 +36,16 @@ describe("App", () => {
     expect(screen.getByText("How it works")).toBeInTheDocument();
   });
 
-  it("spotlights a corpus case with its verdict", () => {
+  it("shows key metrics and benchmark snapshot inline", () => {
     render(
       <Providers>
         <App />
       </Providers>,
     );
-    expect(screen.getByText("Case spotlight")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("See the evidence trail"));
-    expect(screen.getByText("The two-hop culprit")).toBeInTheDocument();
+    expect(screen.getByText("Key metrics")).toBeInTheDocument();
+    expect(screen.getByText("How it works")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("regression-03"));
+    expect(screen.getByText(/Top-1 1.00/)).toBeInTheDocument();
   });
 
   it("shows the verdict hero with gauge and quickstart", () => {

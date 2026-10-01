@@ -46,26 +46,6 @@ const HOW_IT_WORKS: { title: string; text: string; icon: LucideIcon }[] = [
   },
 ];
 
-function Spotlight({ go }: { go: (view: ViewId) => void }) {
-  const pick = CORPUS[new Date().getDate() % CORPUS.length];
-  return (
-    <div className="mt-2 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)">
-      <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">
-        {pick.id} · {pick.language} · rotated daily
-      </p>
-      <p className="mt-1 font-display text-base font-bold">{pick.title}</p>
-      <p className="mt-1 text-sm">{pick.story}</p>
-      <p className="mt-2 font-mono text-xs text-(--muted)">verdict: {pick.verdict}</p>
-      <button
-        onClick={() => go("examples")}
-        className="mt-3 rounded bg-(--surface-2) px-3 py-1 text-sm"
-      >
-        See the evidence trail
-      </button>
-    </div>
-  );
-}
-
 function Kpi({
   label,
   value,
@@ -110,163 +90,157 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
       {top && (
         <section
           aria-label="verdict"
-          className="@container rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-5"
+          className="@container rounded border border-(--border) bg-(--surface) p-5 shadow-(--shadow)"
         >
           <div className="flex flex-col gap-4 @min-[560px]:flex-row @min-[560px]:items-center">
-          <ScoreGauge score={top.score} label="evidence strength" />
-          <div className="min-w-0 flex-1">
-            <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">
-              Most probable cause
-            </p>
-            <p className="mt-1 font-display text-xl font-bold">
-              {top.message.split("\n")[0]}{" "}
-              <code className="font-mono text-sm font-normal text-(--muted)">
-                {top.commit_sha.slice(0, 12)}
-              </code>
-            </p>
-            <div className="mt-2 max-w-xl">
-              <ScoreBar candidate={top} />
+            <ScoreGauge score={top.score} label="evidence strength" />
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">
+                Most probable cause
+              </p>
+              <p className="mt-1 font-display text-xl font-bold">
+                {top.message.split("\n")[0]}{" "}
+                <code className="font-mono text-sm font-normal text-(--muted)">
+                  {top.commit_sha.slice(0, 12)}
+                </code>
+              </p>
+              <div className="mt-2 max-w-xl">
+                <ScoreBar candidate={top} />
+              </div>
+              <p className="mt-2 text-sm text-(--muted)">
+                {supporting} supporting · {contradicting} contradicting · not a probability
+              </p>
+              <button
+                onClick={() => go("analysis")}
+                className="mt-3 rounded bg-(--text) px-3 py-1 text-sm text-(--bg)"
+              >
+                Open analysis
+              </button>
             </div>
-            <p className="mt-2 text-sm text-(--muted)">
-              {supporting} supporting · {contradicting} contradicting · not a probability
-            </p>
-            <button
-              onClick={() => go("analysis")}
-              className="mt-3 rounded bg-(--text) px-3 py-1 text-sm text-(--bg)"
-            >
-              Open analysis
-            </button>
-          </div>
           </div>
         </section>
       )}
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-12">
-        <div className="space-y-3 lg:col-span-8">
-          <section
-            aria-label="quickstart"
-            className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
-          >
-            <p className="text-sm text-(--muted)">
-              Give Rootline a repo plus a failing test — it ranks the commits that most
-              likely caused it, with evidence for and against. New here?{" "}
-              <button onClick={() => setTouring(true)} className="underline" data-tour-trigger>
-                Start guided tour
-              </button>
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <pre
-                tabIndex={0}
-                aria-label={`command: ${QUICKSTART}`}
-                className="flex-1 overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm"
-              >
-                {QUICKSTART}
-              </pre>
-              <button
-                onClick={() =>
-                  navigator.clipboard.writeText(QUICKSTART).then(
-                    () => {
-                      setCopied(true);
-                      window.setTimeout(() => setCopied(false), 1500);
-                    },
-                    () => undefined,
-                  )
-                }
-                className="rounded bg-(--surface-2) px-3 py-1 text-sm"
-              >
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-          </section>
-
-          {rest.length > 0 && (
-            <section
-              aria-label="more candidates"
-              className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+      <div className="mt-3 columns-1 gap-3 lg:columns-2 [&>*]:mb-3">
+        <section
+          aria-label="quickstart"
+          className="break-inside-avoid rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+        >
+          <p className="text-sm text-(--muted)">
+            Give Rootline a repo plus a failing test — it ranks the commits that most
+            likely caused it, with evidence for and against. New here?{" "}
+            <button onClick={() => setTouring(true)} className="underline" data-tour-trigger>
+              Start guided tour
+            </button>
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <pre
+              tabIndex={0}
+              aria-label={`command: ${QUICKSTART}`}
+              className="flex-1 overflow-x-auto rounded bg-(--surface-2) p-2 font-mono text-sm"
             >
-              <h2 className="text-sm font-semibold">Also suspected</h2>
-              <ul className="mt-2 space-y-2">
-                {rest.map((c) => (
-                  <li
-                    key={c.commit_sha}
-                    className="flex items-baseline justify-between gap-3 font-mono text-sm"
-                  >
-                    <button onClick={() => go("analysis")} className="truncate hover:underline">
-                      {c.commit_sha.slice(0, 12)} · {c.message.split("\n")[0]}
-                    </button>
-                    <span className="shrink-0 text-(--muted)">{c.score.toFixed(2)}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
-          <section aria-label="recent analyses">
-            <h2 className="text-sm font-semibold">Recent analyses</h2>
-            <ul className="mt-2 grid gap-2 md:grid-cols-2">
-              {index.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-3"
-                >
-                  <button
-                    onClick={() => go("analysis")}
-                    className="font-mono text-sm hover:underline"
-                  >
-                    {entry.id}
-                  </button>
-                  <p className="mt-1 font-mono text-xs text-(--muted)">
-                    {entry.candidate_count} candidates · top {entry.top_score?.toFixed(2) ?? "—"}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section aria-label="case spotlight">
-            <h2 className="text-sm font-semibold">Case spotlight</h2>
-            <Spotlight go={go} />
-          </section>
-        </div>
-
-        <div className="space-y-3 lg:col-span-4">
-          <div className="grid grid-cols-2 gap-3">
-          <Kpi label="Analyses" value={analyses} sub={live ? "live" : "sample data"} icon={Database} index={0} />
-          <Kpi
-            label="Corpus MRR"
-            value={mrr}
-            sub={`${BENCHMARK_SUMMARY.cases} cases · top-1 ${BENCHMARK_SUMMARY.top1.toFixed(2)}`}
-            icon={Trophy}
-            index={1}
-          />
-          <Kpi label="Languages" value="2" sub="Python + TypeScript" icon={Languages} index={2} />
-          <Kpi label="Evidence kinds" value="6" sub="for and against" icon={Scale} index={3} />
+              {QUICKSTART}
+            </pre>
+            <button
+              onClick={() =>
+                navigator.clipboard.writeText(QUICKSTART).then(
+                  () => {
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 1500);
+                  },
+                  () => undefined,
+                )
+              }
+              className="rounded bg-(--surface-2) px-3 py-1 text-sm"
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
           </div>
+        </section>
 
+        <section aria-label="key metrics" className="break-inside-avoid">
+          <h2 className="text-sm font-semibold">Key metrics</h2>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Kpi label="Analyses" value={analyses} sub={live ? "live" : "sample data"} icon={Database} index={0} />
+            <Kpi
+              label="Corpus MRR"
+              value={mrr}
+              sub={`${BENCHMARK_SUMMARY.cases} cases · top-1 ${BENCHMARK_SUMMARY.top1.toFixed(2)}`}
+              icon={Trophy}
+              index={1}
+            />
+            <Kpi label="Languages" value="2" sub="Python + TypeScript" icon={Languages} index={2} />
+            <Kpi label="Evidence kinds" value="6" sub="for and against" icon={Scale} index={3} />
+          </div>
+        </section>
+
+        {rest.length > 0 && (
           <section
-            aria-label="benchmark snapshot"
-            className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+            aria-label="more candidates"
+            className="break-inside-avoid rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
           >
-            <h2 className="text-sm font-semibold">Benchmarks</h2>
-            <ul className="mt-2 space-y-1">
-              {CORPUS.map((c) => (
+            <h2 className="text-sm font-semibold">Also suspected</h2>
+            <ul className="mt-2 space-y-2">
+              {rest.map((c) => (
                 <li
-                  key={c.id}
-                  className="grid grid-cols-[1fr_auto] items-center gap-2 font-mono text-xs"
+                  key={c.commit_sha}
+                  className="flex items-baseline justify-between gap-3 font-mono text-sm"
                 >
-                  <button onClick={() => go("benchmarks")} className="truncate text-left hover:underline">
-                    {c.id}
+                  <button onClick={() => go("analysis")} className="truncate hover:underline">
+                    {c.commit_sha.slice(0, 12)} · {c.message.split("\n")[0]}
                   </button>
-                  <span className="min-w-28 rounded bg-(--surface-2) px-2 py-0.5 text-right tabular-nums">
-                    #1 · {c.language}
-                  </span>
+                  <span className="shrink-0 text-(--muted)">{c.score.toFixed(2)}</span>
                 </li>
               ))}
             </ul>
           </section>
-          {touring && <Tour onClose={() => setTouring(false)} />}
-        </div>
+        )}
+
+        <section aria-label="recent analyses" className="break-inside-avoid">
+          <h2 className="text-sm font-semibold">Recent analyses</h2>
+          <ul className="mt-2 grid gap-2 md:grid-cols-2">
+            {index.map((entry) => (
+              <li
+                key={entry.id}
+                className="rounded border border-(--border) bg-(--surface) p-3 shadow-(--shadow)"
+              >
+                <button
+                  onClick={() => go("analysis")}
+                  className="font-mono text-sm hover:underline"
+                >
+                  {entry.id}
+                </button>
+                <p className="mt-1 font-mono text-xs text-(--muted)">
+                  {entry.candidate_count} candidates · top {entry.top_score?.toFixed(2) ?? "—"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section
+          aria-label="benchmark snapshot"
+          className="break-inside-avoid rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+        >
+          <h2 className="text-sm font-semibold">Benchmarks</h2>
+          <ul className="mt-2 space-y-1">
+            {CORPUS.map((c) => (
+              <li
+                key={c.id}
+                className="grid grid-cols-[1fr_auto] items-center gap-2 font-mono text-xs"
+              >
+                <button onClick={() => go("benchmarks")} className="truncate text-left hover:underline">
+                  {c.id}
+                </button>
+                <span className="min-w-28 rounded bg-(--surface-2) px-2 py-0.5 text-right tabular-nums">
+                  #1 · {c.language}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       </div>
+      {touring && <Tour onClose={() => setTouring(false)} />}
 
       <section aria-label="how it works" className="mt-3">
         <h2 className="font-display text-base font-bold">How it works</h2>
