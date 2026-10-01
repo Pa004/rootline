@@ -33,6 +33,18 @@ describe("App", () => {
     );
     expect(screen.getByText("Corpus MRR")).toBeInTheDocument();
     expect(screen.getByText("Start guided tour")).toBeInTheDocument();
+    expect(screen.getByText("How it works")).toBeInTheDocument();
+  });
+
+  it("spotlights a corpus case with its verdict", () => {
+    render(
+      <Providers>
+        <App />
+      </Providers>,
+    );
+    expect(screen.getByText("Case spotlight")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("See the evidence trail"));
+    expect(screen.getByText("The two-hop culprit")).toBeInTheDocument();
   });
 
   it("shows the verdict hero with gauge and quickstart", () => {

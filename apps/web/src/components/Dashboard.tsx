@@ -46,6 +46,26 @@ const HOW_IT_WORKS: { title: string; text: string; icon: LucideIcon }[] = [
   },
 ];
 
+function Spotlight({ go }: { go: (view: ViewId) => void }) {
+  const pick = CORPUS[new Date().getDate() % CORPUS.length];
+  return (
+    <div className="mt-2 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)">
+      <p className="font-mono text-[11px] uppercase tracking-widest text-(--muted)">
+        {pick.id} · {pick.language} · rotated daily
+      </p>
+      <p className="mt-1 font-display text-base font-bold">{pick.title}</p>
+      <p className="mt-1 text-sm">{pick.story}</p>
+      <p className="mt-2 font-mono text-xs text-(--muted)">verdict: {pick.verdict}</p>
+      <button
+        onClick={() => go("examples")}
+        className="mt-3 rounded bg-(--surface-2) px-3 py-1 text-sm"
+      >
+        See the evidence trail
+      </button>
+    </div>
+  );
+}
+
 function Kpi({
   label,
   value,
@@ -203,26 +223,9 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
             </ul>
           </section>
 
-          <section aria-label="how it works">
-            <h2 className="text-sm font-semibold">How it works</h2>
-            <ol className="mt-2 grid gap-2 md:grid-cols-3">
-              {HOW_IT_WORKS.map((step, i) => {
-                const Icon = step.icon;
-                return (
-                  <li
-                    key={step.title}
-                    className="rise-in rounded border border-(--border) bg-(--surface) p-3 shadow-(--shadow)"
-                    style={{ animationDelay: `${i * 70}ms` }}
-                  >
-                    <p className="flex items-center gap-2 font-medium">
-                      <Icon size={16} aria-hidden="true" className="text-(--accent-ink)" />
-                      {step.title}
-                    </p>
-                    <p className="mt-1 text-sm text-(--muted)">{step.text}</p>
-                  </li>
-                );
-              })}
-            </ol>
+          <section aria-label="case spotlight">
+            <h2 className="text-sm font-semibold">Case spotlight</h2>
+            <Spotlight go={go} />
           </section>
         </div>
 
@@ -264,6 +267,28 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           {touring && <Tour onClose={() => setTouring(false)} />}
         </div>
       </div>
+
+      <section aria-label="how it works" className="mt-3">
+        <h2 className="font-display text-base font-bold">How it works</h2>
+        <ol className="mt-2 grid gap-2 md:grid-cols-3">
+          {HOW_IT_WORKS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <li
+                key={step.title}
+                className="rise-in rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+                style={{ animationDelay: `${i * 70}ms` }}
+              >
+                <p className="flex items-center gap-2 font-medium">
+                  <Icon size={16} aria-hidden="true" className="text-(--accent-ink)" />
+                  {step.title}
+                </p>
+                <p className="mt-1 text-sm text-(--muted)">{step.text}</p>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
 
       <section
         aria-label="default evidence weights"
