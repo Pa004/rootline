@@ -141,11 +141,11 @@ export default function App() {
               {view === "analysis" && tab === "candidates" && (
                 <CandidatesTable candidates={analysis.candidates} />
               )}
-              {view === "analysis" && tab === "graph" && (
-                <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
-                  <GraphExplorer />
-                </Suspense>
-              )}
+          {view === "analysis" && tab === "graph" && (
+            <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
+              <GraphExplorer candidates={analysis.candidates} />
+            </Suspense>
+          )}
               {view === "analysis" && tab === "report" && (
                 <Explanation candidate={selected ?? analysis.candidates[0]} />
               )}

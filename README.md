@@ -16,8 +16,14 @@ contradictory evidence — fully local, no paid services.
 
 [**Try it live**](https://rootline-73m.pages.dev/) — no installation required
 
-![Rootline dashboard with ranked culprit, evidence breakdown and metrics](assets/screenshot-dashboard.png)
-![Rootline evidence graph explorer with commit, file, symbol and test nodes](assets/screenshot-graph.png)
+<figure>
+  <img src="assets/screenshot-dashboard.png" alt="Rootline dashboard with ranked culprit, evidence breakdown and metrics" width="100%" />
+  <figcaption><strong>Dashboard:</strong> top suspect with evidence-strength score, breakdown bars, KPIs and benchmark snapshot.</figcaption>
+</figure>
+<figure>
+  <img src="assets/screenshot-graph.png" alt="Rootline evidence graph explorer with commit, file, symbol and test nodes" width="100%" />
+  <figcaption><strong>Evidence graph explorer:</strong> commits, files, symbols and tests linked by changes, imports and coverage — filterable by node type.</figcaption>
+</figure>
 
 </div>
 

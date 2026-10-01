@@ -4,6 +4,8 @@ export interface GraphNode {
   id: string;
   type: "commit" | "file" | "symbol" | "test";
   label: string;
+  outcome?: string;
+  score?: number;
 }
 
 export interface GraphEdge {
@@ -53,14 +55,77 @@ export function buildElements(
     ...nodes
       .filter((n) => visible.has(n.id))
       .map((n) => ({
-        data: { id: n.id, label: n.label, type: n.type },
+        data: {
+          id: n.id,
+          label: rankLabel(n),
+          type: n.type,
+          outcome: n.outcome ?? "",
+          score: n.score ?? -1,
+        },
       })),
     ...edges
       .filter((e) => visible.has(e.source) && visible.has(e.target))
-      .map((e, i) => ({
-        data: { id: `e${i}`, source: e.source, target: e.target, label: e.kind },
+      .map((e) => ({
+        data: {
+          id: `${e.source}→${e.target}:${e.kind}`,
+          source: e.source,
+          target: e.target,
+          label: e.kind,
+          kind: e.kind,
+        },
       })),
   ];
+}
+
+/** Top suspects get their rank baked into the label. */
+function rankLabel(n: GraphNode): string {
+  if (n.type === "commit" && n.score !== undefined && n.score >= 0) {
+    return `${n.label} · ${n.score.toFixed(2)}`;
+  }
+  return n.label;
+}
+
+/** Nodes/edges on any shortest commit→failing-test path (undirected BFS). */
+export function tracePath(
+  edges: GraphEdge[],
+  startId: string,
+  goalIds: Set<string>,
+): { nodes: Set<string>; edges: Set<string> } {
+  const adjacency = new Map<string, { to: string; id: string }[]>();
+  const link = (a: string, b: string, id: string) => {
+    if (!adjacency.has(a)) adjacency.set(a, []);
+    adjacency.get(a)!.push({ to: b, id });
+  };
+  for (const e of edges) {
+    const id = `${e.source}→${e.target}:${e.kind}`;
+    link(e.source, e.target, id);
+    link(e.target, e.source, id);
+  }
+  const prev = new Map<string, { from: string; via: string }>([[startId, { from: "", via: "" }]]);
+  const queue = [startId];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    for (const { to, id } of adjacency.get(current) ?? []) {
+      if (!prev.has(to)) {
+        prev.set(to, { from: current, via: id });
+        queue.push(to);
+      }
+    }
+  }
+  const nodes = new Set<string>();
+  const edgeIds = new Set<string>();
+  for (const goal of goalIds) {
+    if (!prev.has(goal)) continue;
+    let cursor: string = goal;
+    nodes.add(cursor);
+    while (cursor !== startId) {
+      const step = prev.get(cursor)!;
+      edgeIds.add(step.via);
+      cursor = step.from;
+      nodes.add(cursor);
+    }
+  }
+  return { nodes, edges: edgeIds };
 }
 
 export function nodeStyle(type: string): { shape: cytoscape.Css.NodeShape; color: string } {
@@ -70,10 +135,11 @@ export function nodeStyle(type: string): { shape: cytoscape.Css.NodeShape; color
 export interface GraphTheme {
   label: string;
   edge: string;
+  accent: string;
 }
 
-export const DARK_GRAPH: GraphTheme = { label: "#e4e4e7", edge: "#52525b" };
-export const LIGHT_GRAPH: GraphTheme = { label: "#27272a", edge: "#a1a1aa" };
+export const DARK_GRAPH: GraphTheme = { label: "#e4e4e7", edge: "#52525b", accent: "#5eead4" };
+export const LIGHT_GRAPH: GraphTheme = { label: "#27272a", edge: "#a1a1aa", accent: "#0f766e" };
 
 export function createGraph(
   container: HTMLElement,
@@ -101,6 +167,10 @@ export function createGraph(
         style: { shape: s.shape, "background-color": s.color },
       })),
       {
+        selector: "node[type = 'test'][outcome = 'failed']",
+        style: { "border-width": 3, "border-color": "#ef4444" },
+      },
+      {
         selector: "edge",
         style: {
           label: "data(label)",
@@ -111,6 +181,42 @@ export function createGraph(
           "target-arrow-color": theme.edge,
           "curve-style": "bezier",
         },
+      },
+      {
+        selector: "edge[kind = 'fails']",
+        style: { "line-color": "#ef4444", "target-arrow-color": "#ef4444", width: 2 },
+      },
+      {
+        selector: "edge[kind = 'changes']",
+        style: { "line-color": "#38bdf8", "target-arrow-color": "#38bdf8", width: 2 },
+      },
+      {
+        selector: "edge[kind = 'covers']",
+        style: { "line-color": "#34d399", "target-arrow-color": "#34d399" },
+      },
+      {
+        selector: "edge[kind = 'depends']",
+        style: { "line-style": "dashed" },
+      },
+      {
+        selector: "edge[kind = 'contains']",
+        style: { "line-style": "dotted" },
+      },
+      {
+        selector: ".traced",
+        style: { "border-width": 3, "border-color": theme.accent },
+      },
+      {
+        selector: "edge.traced",
+        style: {
+          "line-color": theme.accent,
+          "target-arrow-color": theme.accent,
+          width: 3,
+        },
+      },
+      {
+        selector: ".dimmed",
+        style: { opacity: 0.22 },
       },
       {
         selector: ":selected",
