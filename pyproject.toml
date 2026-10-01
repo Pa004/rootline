@@ -8,7 +8,7 @@ version = "0.2.0"
 description = "Trace the change. Find the cause."
 readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 authors = [{ name = "Pablo Domínguez" }]
 keywords = ["debugging", "causal-analysis", "git", "regression"]
 urls = { repository = "https://github.com/Pa004/rootline" }
