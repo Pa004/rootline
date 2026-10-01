@@ -36,7 +36,7 @@ export function Tutorial() {
   return (
     <div className="max-w-3xl">
       <h2 className="text-lg font-display font-bold">Analyze your first repo</h2>
-      <p className="mt-1 rounded border border-(--border) bg-(--surface) p-3 text-sm">
+      <p className="mt-1 rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-3 text-sm">
         You need: <strong>Python 3.13+</strong>, <strong>git</strong>, and a{" "}
         <strong>JUnit XML</strong> report from your test run. No accounts, no
         servers, no credit card.
@@ -44,7 +44,7 @@ export function Tutorial() {
       <p className="text-sm text-(--muted)">
         Step {step + 1} of {total}
       </p>
-      <div className="reveal-on-scroll mt-4 rounded border border-(--border) bg-(--surface) p-4">
+      <div className="reveal-on-scroll mt-4 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)">
         <h3 className="font-display font-bold">{current.title}</h3>
         <pre
           tabIndex={0}

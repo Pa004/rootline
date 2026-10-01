@@ -69,7 +69,7 @@ export function Palette() {
       onClick={() => setPalette(false)}
     >
       <div
-        className="w-full max-w-lg rounded border border-(--border) bg-(--surface) p-2"
+        className="w-full max-w-lg rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-2"
         onClick={(e) => e.stopPropagation()}
       >
         <input

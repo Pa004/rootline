@@ -35,7 +35,7 @@ function Kpi({
 }) {
   return (
     <div
-      className="rise-in rounded border border-(--border) bg-(--surface) p-4"
+      className="rise-in rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow) shadow-(--shadow)"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <p className="flex items-center gap-1 text-sm text-(--muted)">
@@ -64,7 +64,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
       {top && (
         <section
           aria-label="verdict"
-          className="@container rounded border border-(--border) bg-(--surface) p-5"
+          className="@container rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-5"
         >
           <div className="flex flex-col gap-4 @min-[560px]:flex-row @min-[560px]:items-center">
           <ScoreGauge score={top.score} label="evidence strength" />
@@ -99,7 +99,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
         <div className="space-y-3 lg:col-span-8">
           <section
             aria-label="quickstart"
-            className="rounded border border-(--border) bg-(--surface) p-4"
+            className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
           >
             <p className="text-sm text-(--muted)">
               Give Rootline a repo plus a failing test — it ranks the commits that most
@@ -133,7 +133,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           {rest.length > 0 && (
             <section
               aria-label="more candidates"
-              className="rounded border border-(--border) bg-(--surface) p-4"
+              className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
             >
               <h2 className="font-display text-base font-bold">Also suspected</h2>
               <ul className="mt-2 space-y-2">
@@ -158,7 +158,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
               {index.map((entry) => (
                 <li
                   key={entry.id}
-                  className="rounded border border-(--border) bg-(--surface) p-3"
+                  className="rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-3"
                 >
                   <button
                     onClick={() => go("analysis")}
@@ -191,7 +191,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
 
           <section
             aria-label="benchmark snapshot"
-            className="rounded border border-(--border) bg-(--surface) p-4"
+            className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
           >
             <h2 className="font-display text-base font-bold">Benchmarks</h2>
             <ul className="mt-2 space-y-1">

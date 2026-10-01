@@ -45,7 +45,7 @@ export function Examples() {
         <section
           aria-label={`evidence trail for ${selected.id}`}
           aria-live="polite"
-          className="mt-4 rounded border border-(--border) bg-(--surface) p-4"
+          className="mt-4 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
         >
           <h3 className="font-display font-bold">
             {selected.id} — {selected.title}

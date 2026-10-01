@@ -23,22 +23,26 @@
   --accent-ink: #0f766e;
   --mesh-a: rgb(45 212 191 / 0.1);
   --mesh-b: rgb(56 189 248 / 0.07);
+  --sidebar: #18181b;
+  --shadow: none;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #fafafa;
+  --bg: #f1f1f4;
   --surface: #ffffff;
-  --surface-2: #f4f4f5;
+  --surface-2: #e9e9ec;
+  --sidebar: #e4e4e9;
   --text: #18181b;
-  --muted: #52525b;
-  --border: #e4e4e7;
+  --muted: #3f3f46;
+  --border: #d4d4d8;
   --graph-label: #27272a;
   --graph-edge: #a1a1aa;
   --accent: #0f766e;
   --accent-ink: #0f766e;
   --mesh-a: rgb(15 118 110 / 0.08);
   --mesh-b: rgb(37 99 235 / 0.06);
+  --shadow: 0 1px 2px rgb(24 24 27 / 0.07), 0 2px 8px rgb(24 24 27 / 0.05);
 }
 
 body {

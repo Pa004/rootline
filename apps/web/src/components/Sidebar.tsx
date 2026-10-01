@@ -47,11 +47,11 @@ export function Sidebar({
   return (
     <aside
       aria-label="primary"
-      className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-(--border) bg-(--surface) p-4 transition-transform md:static md:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-30 flex max-h-screen w-60 flex-col gap-0 overflow-y-auto border-r border-(--border) bg-(--sidebar) p-4 transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 ${
         open ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div>
+      <div className="shrink-0">
         <p className="font-display text-xl font-bold">Rootline</p>
         <p className="mt-1 flex items-center gap-1 text-xs text-(--muted)">
           <span className="live-dot inline-block" aria-hidden="true">
@@ -60,7 +60,7 @@ export function Sidebar({
           {live ? "live" : "sample data"}
         </p>
       </div>
-      <nav aria-label="sections" className="mt-6 flex flex-col gap-1">
+      <nav aria-label="sections" className="mt-6 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
         {ITEMS.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
@@ -92,7 +92,7 @@ export function Sidebar({
           );
         })}
       </nav>
-      <div className="mt-auto flex flex-col gap-2 border-t border-(--border) pt-3">
+      <div className="mt-3 flex shrink-0 flex-col gap-2 border-t border-(--border) pt-3">
         <button
           onClick={onPalette}
           aria-label="open command palette"

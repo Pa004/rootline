@@ -39,7 +39,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
       aria-label={`Guided tour, step ${step + 1} of ${total}: ${current.title}`}
       ref={dialogRef}
       tabIndex={-1}
-      className="mt-4 rounded border border-(--border) bg-(--surface) p-4"
+      className="mt-4 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
     >
       <p className="text-sm text-(--muted)">
         Step {step + 1} of {total}
