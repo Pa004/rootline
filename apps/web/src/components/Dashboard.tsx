@@ -129,7 +129,10 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           >
             <p className="text-sm text-(--muted)">
               Give Rootline a repo plus a failing test — it ranks the commits that most
-              likely caused it, with evidence for and against.
+              likely caused it, with evidence for and against. New here?{" "}
+              <button onClick={() => setTouring(true)} className="underline" data-tour-trigger>
+                Start guided tour
+              </button>
             </p>
             <div className="mt-2 flex items-center gap-2">
               <pre
@@ -258,27 +261,6 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
               ))}
             </ul>
           </section>
-
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              onClick={() => setTouring(true)}
-              className="w-full rounded bg-(--surface-2) px-3 py-1.5 text-left text-sm"
-            >
-              Start guided tour
-            </button>
-            <button
-              onClick={() => go("tutorial")}
-              className="w-full rounded bg-(--text) px-3 py-1.5 text-left text-sm text-(--bg)"
-            >
-              Analyze your first repo
-            </button>
-            <button
-              onClick={() => go("examples")}
-              className="w-full rounded bg-(--surface-2) px-3 py-1.5 text-left text-sm"
-            >
-              Browse examples
-            </button>
-          </div>
           {touring && <Tour onClose={() => setTouring(false)} />}
         </div>
       </div>

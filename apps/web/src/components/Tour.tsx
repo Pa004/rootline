@@ -29,18 +29,26 @@ export function Tour({ onClose }: { onClose: () => void }) {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.querySelector<HTMLElement>("[data-tour-trigger]")?.focus();
+    };
   }, [onClose]);
   const current = STEPS[step];
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Guided tour, step ${step + 1} of ${total}: ${current.title}`}
-      ref={dialogRef}
-      tabIndex={-1}
-      className="mt-4 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
     >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Guided tour, step ${step + 1} of ${total}: ${current.title}`}
+        ref={dialogRef}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+      >
       <p className="text-sm text-(--muted)">
         Step {step + 1} of {total}
       </p>
@@ -72,6 +80,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
         <button onClick={onClose} className="rounded px-3 py-1 text-sm text-(--muted)">
           Close
         </button>
+        </div>
       </div>
     </div>
   );

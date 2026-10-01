@@ -32,7 +32,7 @@ describe("App", () => {
       </Providers>,
     );
     expect(screen.getByText("Corpus MRR")).toBeInTheDocument();
-    expect(screen.getByText("Analyze your first repo")).toBeInTheDocument();
+    expect(screen.getByText("Start guided tour")).toBeInTheDocument();
   });
 
   it("shows the verdict hero with gauge and quickstart", () => {
