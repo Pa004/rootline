@@ -61,7 +61,7 @@ function Kpi({
 }) {
   return (
     <div
-      className="rise-in rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow) shadow-(--shadow)"
+      className="rise-in rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
       style={{ animationDelay: `${index * 70}ms` }}
     >
       <p className="flex items-center gap-1 text-sm text-(--muted)">

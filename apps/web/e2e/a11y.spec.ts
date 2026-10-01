@@ -14,12 +14,17 @@ async function setTheme(page: Page, theme: "dark" | "light") {
   }
 }
 
-/** View switches play a 220ms fade; audit only once text is fully opaque. */
+/**
+ * View switches play a 220ms fade and cards stagger up to ~660ms
+ * (delay + duration). Audit only once every finite animation settled;
+ * the live-dot pulse is infinite and excluded by design.
+ */
 async function settleView(page: Page) {
   await page.waitForFunction(() => {
     const el = document.querySelector("#main-content > div");
     return !el || getComputedStyle(el).opacity === "1";
   });
+  await page.waitForTimeout(1000);
 }
 
 for (const theme of THEMES) {
