@@ -5,8 +5,7 @@ export function Examples() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = CORPUS.find((c) => c.id === selectedId);
   return (
-    <div>
-      <h2 className="text-lg font-display font-bold">Examples</h2>
+    <div className="max-w-4xl">
       <p className="text-sm text-(--muted)">
         Planted regressions with known ground truth — run them with{" "}
         <code className="font-mono">rootline benchmark</code>. Select one for its evidence

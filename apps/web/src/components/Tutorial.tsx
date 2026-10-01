@@ -35,8 +35,7 @@ export function Tutorial() {
   const current = STEPS[step];
   return (
     <div className="max-w-3xl">
-      <h2 className="text-lg font-display font-bold">Analyze your first repo</h2>
-      <p className="mt-1 rounded border border-(--border) bg-(--surface) shadow-(--shadow) p-3 text-sm">
+      <p className="rounded border border-(--border) bg-(--surface) p-3 text-sm shadow-(--shadow)">
         You need: <strong>Python 3.13+</strong>, <strong>git</strong>, and a{" "}
         <strong>JUnit XML</strong> report from your test run. No accounts, no
         servers, no credit card.

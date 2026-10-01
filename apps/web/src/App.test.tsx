@@ -81,7 +81,7 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Examples" }));
     expect(screen.getByText("The two-hop culprit")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Tutorial" }));
-    expect(screen.getByText("Analyze your first repo")).toBeInTheDocument();
+    expect(screen.getByText("1. Run your tests to JUnit")).toBeInTheDocument();
     expect(window.location.hash).toBe("#/tutorial");
   });
 

@@ -2,8 +2,7 @@ import { BENCHMARK_ROWS, BENCHMARK_SUMMARY } from "../data/corpus";
 
 export function Benchmarks() {
   return (
-    <div>
-      <h2 className="text-lg font-display font-bold">Benchmarks</h2>
+    <div className="max-w-4xl">
       <p className="text-sm text-(--muted)">
         Top-1 {BENCHMARK_SUMMARY.top1.toFixed(2)} · Top-3 {BENCHMARK_SUMMARY.top3.toFixed(2)} ·
         MRR {BENCHMARK_SUMMARY.mrr.toFixed(2)} over {BENCHMARK_SUMMARY.cases} corpus cases.

@@ -161,7 +161,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
               aria-label="more candidates"
               className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
             >
-              <h2 className="font-display text-base font-bold">Also suspected</h2>
+              <h2 className="text-sm font-semibold">Also suspected</h2>
               <ul className="mt-2 space-y-2">
                 {rest.map((c) => (
                   <li
@@ -179,7 +179,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           )}
 
           <section aria-label="recent analyses">
-            <h2 className="font-display text-base font-bold">Recent analyses</h2>
+            <h2 className="text-sm font-semibold">Recent analyses</h2>
             <ul className="mt-2 grid gap-2 md:grid-cols-2">
               {index.map((entry) => (
                 <li
@@ -201,7 +201,7 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           </section>
 
           <section aria-label="how it works">
-            <h2 className="font-display text-base font-bold">How it works</h2>
+            <h2 className="text-sm font-semibold">How it works</h2>
             <ol className="mt-2 grid gap-2 md:grid-cols-3">
               {HOW_IT_WORKS.map((step, i) => {
                 const Icon = step.icon;
@@ -241,17 +241,17 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
             aria-label="benchmark snapshot"
             className="rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
           >
-            <h2 className="font-display text-base font-bold">Benchmarks</h2>
+            <h2 className="text-sm font-semibold">Benchmarks</h2>
             <ul className="mt-2 space-y-1">
               {CORPUS.map((c) => (
                 <li
                   key={c.id}
-                  className="flex items-center justify-between gap-2 font-mono text-xs"
+                  className="grid grid-cols-[1fr_auto] items-center gap-2 font-mono text-xs"
                 >
-                  <button onClick={() => go("benchmarks")} className="truncate hover:underline">
+                  <button onClick={() => go("benchmarks")} className="truncate text-left hover:underline">
                     {c.id}
                   </button>
-                  <span className="shrink-0 rounded bg-(--surface-2) px-2 py-0.5">
+                  <span className="min-w-28 rounded bg-(--surface-2) px-2 py-0.5 text-right tabular-nums">
                     #1 · {c.language}
                   </span>
                 </li>
@@ -259,22 +259,22 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
             </ul>
           </section>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <button
               onClick={() => setTouring(true)}
-              className="rounded bg-(--surface-2) px-3 py-1 text-sm"
+              className="w-full rounded bg-(--surface-2) px-3 py-1.5 text-left text-sm"
             >
               Start guided tour
             </button>
             <button
               onClick={() => go("tutorial")}
-              className="rounded bg-(--text) px-3 py-1 text-sm text-(--bg)"
+              className="w-full rounded bg-(--text) px-3 py-1.5 text-left text-sm text-(--bg)"
             >
               Analyze your first repo
             </button>
             <button
               onClick={() => go("examples")}
-              className="rounded bg-(--surface-2) px-3 py-1 text-sm"
+              className="w-full rounded bg-(--surface-2) px-3 py-1.5 text-left text-sm"
             >
               Browse examples
             </button>
