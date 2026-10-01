@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Database, Languages, Scale, Trophy, type LucideIcon } from "lucide-react";
+import {
+  Database,
+  FolderGit2,
+  Languages,
+  Network,
+  Scale,
+  Trophy,
+  type LucideIcon,
+} from "lucide-react";
 import { useIndex } from "../useIndex";
 import { useAnalysis } from "../useAnalysis";
 import { useCountUp } from "../motion";
@@ -19,6 +27,24 @@ const WEIGHTS: [string, number][] = [
 ];
 
 const QUICKSTART = "rootline analyze ./repo --test-results results.xml --baseline main";
+
+const HOW_IT_WORKS: { title: string; text: string; icon: LucideIcon }[] = [
+  {
+    title: "1. Ingest",
+    text: "Repo history plus a JUnit report go in — commits, files and test results.",
+    icon: FolderGit2,
+  },
+  {
+    title: "2. Evidence graph",
+    text: "Commits, files, symbols and tests linked by changes, imports and coverage.",
+    icon: Network,
+  },
+  {
+    title: "3. Ranked verdict",
+    text: "Candidates scored with evidence for and against. Nothing is a probability.",
+    icon: Trophy,
+  },
+];
 
 function Kpi({
   label,
@@ -173,6 +199,28 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
               ))}
             </ul>
           </section>
+
+          <section aria-label="how it works">
+            <h2 className="font-display text-base font-bold">How it works</h2>
+            <ol className="mt-2 grid gap-2 md:grid-cols-3">
+              {HOW_IT_WORKS.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <li
+                    key={step.title}
+                    className="rise-in rounded border border-(--border) bg-(--surface) p-3 shadow-(--shadow)"
+                    style={{ animationDelay: `${i * 70}ms` }}
+                  >
+                    <p className="flex items-center gap-2 font-medium">
+                      <Icon size={16} aria-hidden="true" className="text-(--accent-ink)" />
+                      {step.title}
+                    </p>
+                    <p className="mt-1 text-sm text-(--muted)">{step.text}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
         </div>
 
         <div className="space-y-3 lg:col-span-4">
@@ -211,17 +259,6 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
             </ul>
           </section>
 
-          <section aria-label="default evidence weights">
-            <h2 className="font-display text-base font-bold">Weights</h2>
-            <ul className="mt-2 flex flex-wrap gap-2 font-mono text-xs">
-              {WEIGHTS.map(([kind, weight]) => (
-                <li key={kind} className="rounded bg-(--surface-2) px-2 py-1">
-                  {kind} +{weight.toFixed(2)}
-                </li>
-              ))}
-            </ul>
-          </section>
-
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setTouring(true)}
@@ -245,6 +282,24 @@ export function Dashboard({ go }: { go: (view: ViewId) => void }) {
           {touring && <Tour onClose={() => setTouring(false)} />}
         </div>
       </div>
+
+      <section
+        aria-label="default evidence weights"
+        className="mt-3 rounded border border-(--border) bg-(--surface) p-4 shadow-(--shadow)"
+      >
+        <h2 className="font-display text-base font-bold">Evidence weights</h2>
+        <p className="mt-1 text-sm text-(--muted)">
+          How each signal contributes to the score. Tune them in{" "}
+          <code className="font-mono">rootline.toml</code>.
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-2 font-mono text-xs">
+          {WEIGHTS.map(([kind, weight]) => (
+            <li key={kind} className="rounded bg-(--surface-2) px-2 py-1">
+              {kind} +{weight.toFixed(2)}
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
