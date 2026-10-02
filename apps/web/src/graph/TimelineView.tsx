@@ -1,4 +1,4 @@
-import { orderTrace } from "./cytoscape";
+import { orderTrace } from "./model";
 import { useGraphData } from "./useGraphData";
 import type { CandidateScore } from "../types";
 

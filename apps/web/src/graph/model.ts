@@ -1,4 +1,9 @@
-import cytoscape from "cytoscape";
+/**
+ * Graph model: node/edge types, demo data and pure graph algorithms.
+ *
+ * Rendering-agnostic on purpose — React Flow and the SVG views
+ * all consume these helpers. No DOM, no canvas, fully unit-testable.
+ */
 
 export interface GraphNode {
   id: string;
@@ -38,85 +43,28 @@ export const DEMO_EDGES: GraphEdge[] = [
   { source: "test::test_list_users", target: "file:tests/test_users.py", kind: "covers" },
 ];
 
-const NODE_STYLE: Record<GraphNode["type"], { shape: cytoscape.Css.NodeShape; color: string }> = {
-  commit: { shape: "diamond", color: "#38bdf8" },
-  file: { shape: "round-rectangle", color: "#a78bfa" },
-  symbol: { shape: "ellipse", color: "#34d399" },
-  test: { shape: "octagon", color: "#fbbf24" },
-};
-
 export interface TraceHighlight {
   nodes: Set<string>;
   edges: Set<string>;
 }
 
-export function buildElements(
-  nodes: GraphNode[],
-  edges: GraphEdge[],
-  hiddenTypes: Set<string>,
-  highlight: TraceHighlight | null = null,
-) {
-  const visible = new Set(nodes.filter((n) => !hiddenTypes.has(n.type)).map((n) => n.id));
-  const kept = edges.filter((e) => visible.has(e.source) && visible.has(e.target));
-  const degree = new Map<string, number>();
-  for (const e of kept) {
-    degree.set(e.source, (degree.get(e.source) ?? 0) + 1);
-    degree.set(e.target, (degree.get(e.target) ?? 0) + 1);
-  }
-  const nodeClass = (id: string) =>
-    highlight ? (highlight.nodes.has(id) ? "traced" : "dimmed") : "";
-  const edgeClass = (id: string) =>
-    highlight ? (highlight.edges.has(id) ? "traced" : "dimmed") : "";
-  return [
-    ...nodes
-      .filter((n) => visible.has(n.id))
-      .map((n) => ({
-        data: {
-          id: n.id,
-          label: rankLabel(n),
-          type: n.type,
-          outcome: n.outcome ?? "",
-          score: n.score ?? -1,
-          size: Math.max(degree.get(n.id) ?? 1, 1),
-        },
-        classes: nodeClass(n.id),
-      })),
-    ...kept.map((e) => {
-        const id = `${e.source}→${e.target}:${e.kind}`;
-        return {
-          data: {
-            id,
-            source: e.source,
-            target: e.target,
-            label: e.kind,
-            kind: e.kind,
-          },
-          classes: edgeClass(id),
-        };
-      }),
-  ];
+function edgeId(e: GraphEdge): string {
+  return `${e.source}→${e.target}:${e.kind}`;
 }
 
-/** Top suspects get their rank baked into the label. */
-function rankLabel(n: GraphNode): string {
-  if (n.type === "commit" && n.score !== undefined && n.score >= 0) {
-    return `${n.label} · ${n.score.toFixed(2)}`;
-  }
-  return n.label;
-}
-
-/** Nodes/edges on any shortest commit→failing-test path (undirected BFS). */export function tracePath(
+/** Nodes/edges on any shortest commit→failing-test path (undirected BFS). */
+export function tracePath(
   edges: GraphEdge[],
   startId: string,
   goalIds: Set<string>,
-): { nodes: Set<string>; edges: Set<string> } {
+): TraceHighlight {
   const adjacency = new Map<string, { to: string; id: string }[]>();
   const link = (a: string, b: string, id: string) => {
     if (!adjacency.has(a)) adjacency.set(a, []);
     adjacency.get(a)!.push({ to: b, id });
   };
   for (const e of edges) {
-    const id = `${e.source}→${e.target}:${e.kind}`;
+    const id = edgeId(e);
     link(e.source, e.target, id);
     link(e.target, e.source, id);
   }
@@ -240,123 +188,4 @@ export function parseSmartFilter(query: string): SmartFilter {
     }
   }
   return { text: textParts.join(" "), kinds, affects };
-}
-
-export function nodeStyle(type: string): { shape: cytoscape.Css.NodeShape; color: string } {
-  return NODE_STYLE[type as GraphNode["type"]] ?? { shape: "ellipse", color: "#71717a" };
-}
-
-export interface GraphTheme {
-  label: string;
-  edge: string;
-  accent: string;
-}
-
-export const DARK_GRAPH: GraphTheme = { label: "#e4e4e7", edge: "#52525b", accent: "#5eead4" };
-export const LIGHT_GRAPH: GraphTheme = { label: "#27272a", edge: "#a1a1aa", accent: "#0f766e" };
-
-export type LayoutName = "cose" | "breadthfirst" | "concentric";
-
-export function layoutFor(name: LayoutName, animate: boolean) {
-  if (name === "breadthfirst") {
-    return { name: "breadthfirst", directed: true, padding: 30, spacingFactor: 1.4, animate };
-  }
-  if (name === "concentric") {
-    return {
-      name: "concentric",
-      concentric: (node: { degree: (includeLoops?: boolean) => number }) => node.degree(),
-      levelWidth: () => 2,
-      padding: 30,
-      animate,
-    };
-  }
-  return { name: "cose", padding: 30, animate, animationDuration: 400 };
-}
-
-export function createGraph(
-  container: HTMLElement,
-  elements: ReturnType<typeof buildElements>,
-  theme: GraphTheme = DARK_GRAPH,
-  animate = true,
-  layoutName: LayoutName = "cose",
-) {
-  return cytoscape({
-    container,
-    elements,
-    layout: layoutFor(layoutName, animate),
-    style: [
-      {
-        selector: "node",
-        style: {
-          label: "data(label)",
-          "font-size": 10,
-          color: theme.label,
-          "background-color": "#71717a",
-          shape: "ellipse",
-          width: "mapData(size, 1, 10, 26, 60)",
-          height: "mapData(size, 1, 10, 26, 60)",
-        },
-      },
-      ...Object.entries(NODE_STYLE).map(([type, s]) => ({
-        selector: `node[type = "${type}"]`,
-        style: { shape: s.shape, "background-color": s.color },
-      })),
-      {
-        selector: "node[type = 'test'][outcome = 'failed']",
-        style: { "border-width": 3, "border-color": "#ef4444" },
-      },
-      {
-        selector: "edge",
-        style: {
-          label: "data(label)",
-          "font-size": 8,
-          color: theme.label,
-          "line-color": theme.edge,
-          "target-arrow-shape": "triangle",
-          "target-arrow-color": theme.edge,
-          "curve-style": "bezier",
-        },
-      },
-      {
-        selector: "edge[kind = 'fails']",
-        style: { "line-color": "#ef4444", "target-arrow-color": "#ef4444", width: 2 },
-      },
-      {
-        selector: "edge[kind = 'changes']",
-        style: { "line-color": "#38bdf8", "target-arrow-color": "#38bdf8", width: 2 },
-      },
-      {
-        selector: "edge[kind = 'covers']",
-        style: { "line-color": "#34d399", "target-arrow-color": "#34d399" },
-      },
-      {
-        selector: "edge[kind = 'depends']",
-        style: { "line-style": "dashed" },
-      },
-      {
-        selector: "edge[kind = 'contains']",
-        style: { "line-style": "dotted" },
-      },
-      {
-        selector: ".traced",
-        style: { "border-width": 3, "border-color": theme.accent },
-      },
-      {
-        selector: "edge.traced",
-        style: {
-          "line-color": theme.accent,
-          "target-arrow-color": theme.accent,
-          width: 3,
-        },
-      },
-      {
-        selector: ".dimmed",
-        style: { opacity: 0.22 },
-      },
-      {
-        selector: ":selected",
-        style: { "border-width": 3, "border-color": theme.label },
-      },
-    ],
-  });
 }

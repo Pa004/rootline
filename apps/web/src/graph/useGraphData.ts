@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiConfigured, fetchGraph } from "../api";
 import type { CandidateScore } from "../types";
-import { DEMO_EDGES, DEMO_NODES, tracePath, type GraphEdge, type GraphNode } from "./cytoscape";
+import { DEMO_EDGES, DEMO_NODES, tracePath, type GraphEdge, type GraphNode } from "./model";
 
 const ANALYSIS_ID = (import.meta.env.VITE_ANALYSIS_ID as string | undefined) ?? "";
 
@@ -17,8 +17,10 @@ export interface EvidenceData {
 }
 
 /** Shared graph + ranking derivation for explorer, timeline and treemap. */
+const NO_CANDIDATES: CandidateScore[] = [];
+
 export function useGraphData(
-  candidates: CandidateScore[] = [],
+  candidates: CandidateScore[] = NO_CANDIDATES,
   propNodes?: GraphNode[],
   propEdges?: GraphEdge[],
   trace = true,

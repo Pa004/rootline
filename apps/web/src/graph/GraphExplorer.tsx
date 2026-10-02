@@ -1,18 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Background,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
+  type Edge,
+  type Node,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { toPng } from "html-to-image";
 import { useUi } from "../store";
 import type { CandidateScore } from "../types";
-import {
-  DARK_GRAPH,
-  LIGHT_GRAPH,
-  buildElements,
-  createGraph,
-  layoutFor,
-  neighborsWithin,
-  parseSmartFilter,
-  type GraphEdge,
-  type GraphNode,
-  type LayoutName,
-} from "./cytoscape";
+import { EvidenceNode } from "./EvidenceNode";
+import { layoutFlow, type FlowDirection } from "./flowLayout";
+import { edgeIdentity, matchNodes, toReactFlow } from "./flowRf";
+import { neighborsWithin, parseSmartFilter, type GraphEdge, type GraphNode } from "./model";
 import { useGraphData } from "./useGraphData";
 
 const TYPES: GraphNode["type"][] = ["commit", "file", "symbol", "test"];
@@ -21,86 +26,109 @@ const EDGE_LEGEND: { kind: GraphEdge["kind"]; swatch: string; label: string }[] 
   { kind: "changes", swatch: "#38bdf8", label: "changes" },
   { kind: "fails", swatch: "#ef4444", label: "fails" },
   { kind: "covers", swatch: "#34d399", label: "covers" },
-  { kind: "depends", swatch: "repeating-linear-gradient(90deg, #71717a 55%, transparent 45%)", label: "depends" },
-  { kind: "contains", swatch: "repeating-linear-gradient(90deg, #71717a 25%, transparent 25%)", label: "contains" },
+  { kind: "depends", swatch: "#a1a1aa", label: "depends (dashed)" },
+  { kind: "contains", swatch: "#a1a1aa", label: "contains (dashed)" },
 ];
 
-export function GraphExplorer({
+const nodeTypes = { evidence: EvidenceNode };
+
+const FLOW_LABEL: Record<FlowDirection, string> = { LR: "horizontal", TB: "vertical" };
+
+/** Module-level empty so the default prop keeps a stable identity. */
+const NO_CANDIDATES: CandidateScore[] = [];
+
+function ExplorerInner({
   nodes: propNodes,
   edges: propEdges,
-  candidates = [],
+  candidates = NO_CANDIDATES,
 }: {
   nodes?: GraphNode[];
   edges?: GraphEdge[];
   candidates?: CandidateScore[];
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cyRef = useRef<ReturnType<typeof createGraph> | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<string | null>(null);
   const [trace, setTrace] = useState(true);
-  const [layout, setLayout] = useState<LayoutName>("cose");
+  const [direction, setDirection] = useState<FlowDirection>("LR");
   const [query, setQuery] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
   const { select, theme, reduceMotion } = useUi();
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
 
-  const { nodes, edges: baseEdges, traced } = useGraphData(candidates, propNodes, propEdges, trace);
+  const {
+    nodes,
+    edges: baseEdges,
+    traced,
+    topId,
+  } = useGraphData(candidates, propNodes, propEdges, trace);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const cy = createGraph(
-      containerRef.current,
-      [],
-      theme === "light" ? LIGHT_GRAPH : DARK_GRAPH,
-      !reduceMotion,
-      layout,
-    );
-    cyRef.current = cy;
-    cy.on("tap", "node", (event) => {
-      const id = String(event.target.id());
-      setDetail(id);
-      if (id.startsWith("commit:")) {
-        select(id.slice("commit:".length));
-      }
-    });
-    return () => {
-      cy.stop(true);
-      cy.destroy();
-      cyRef.current = null;
-    };
-  }, [select, theme, reduceMotion, layout]);
+  const visible = useMemo(() => {
+    const kept = nodes.filter((n) => !hidden.has(n.type));
+    const ids = new Set(kept.map((n) => n.id));
+    return { nodes: kept, edges: baseEdges.filter((e) => ids.has(e.source) && ids.has(e.target)) };
+  }, [nodes, baseEdges, hidden]);
 
-  const elements = useMemo(
-    () => buildElements(nodes, baseEdges, hidden, traced),
-    [nodes, baseEdges, hidden, traced],
+  const positions = useMemo(
+    () => layoutFlow(visible.nodes, visible.edges, direction),
+    [visible, direction],
   );
 
+  const flowData = useMemo(
+    () =>
+      toReactFlow({
+        nodes: visible.nodes,
+        edges: visible.edges,
+        positions,
+        topSuspectId: topId ?? undefined,
+        highlight: traced,
+        animate: !reduceMotion,
+      }),
+    [visible, positions, topId, traced, reduceMotion],
+  );
+  const [rfNodes, setRfNodes, onNodesChange] = useNodesState<Node>([]);
+  const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
+  // Reset + refit only when the underlying data actually changes. Keyed on
+  // a fingerprint (not object identity) so fresh-but-equal parent arrays
+  // can't cause a setState render loop.
+  const fingerprint = useMemo(
+    () =>
+      JSON.stringify([
+        direction,
+        trace,
+        topId,
+        visible.nodes.map((n) => n.id),
+        visible.edges.map((e) => edgeIdentity(e)),
+      ]),
+    [direction, trace, topId, visible],
+  );
   useEffect(() => {
-    const cy = cyRef.current;
-    if (!cy) return;
-    cy.elements().remove();
-    cy.add(elements);
-    cy.layout(layoutFor(layout, !reduceMotion)).run();
-  }, [elements, layout, reduceMotion]);
+    setRfNodes(flowData.rfNodes);
+    setRfEdges(flowData.rfEdges);
+    fitView({ padding: 0.15, duration: reduceMotion ? 0 : 300 });
+    // flowData is fully determined by fingerprint inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fingerprint, fitView, reduceMotion, setRfEdges, setRfNodes]);
 
-  function zoom(factor: number) {
-    const cy = cyRef.current;
-    if (!cy) return;
-    cy.zoom({
-      level: cy.zoom() * factor,
-      renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 },
-    });
-  }
-
-  const [notice, setNotice] = useState<string | null>(null);
+  const onNodeClick = useCallback(
+    (_: unknown, node: Node) => {
+      setDetail(node.id);
+      if (node.id.startsWith("commit:")) {
+        select(node.id.slice("commit:".length));
+      }
+    },
+    [select],
+  );
 
   function search(raw: string) {
-    const cy = cyRef.current;
-    if (!cy || raw.trim() === "") return;
+    if (raw.trim() === "") return;
     const filter = parseSmartFilter(raw);
     let pool = nodes.filter(
       (n) =>
         (filter.kinds.size === 0 || filter.kinds.has(n.type)) &&
-        (filter.text === "" || n.label.toLowerCase().includes(filter.text)),
+        (filter.text === "" ||
+          n.label.toLowerCase().includes(filter.text) ||
+          n.id.toLowerCase().includes(filter.text)),
     );
     if (filter.affects !== "") {
       const seeds = new Set(
@@ -114,29 +142,27 @@ export function GraphExplorer({
       return;
     }
     setNotice(null);
-    const ids = new Set(pool.map((n) => n.id));
-    const found = cy.nodes().filter((n) => ids.has(String(n.id())));
-    if (found.length > 0) {
-      cy.elements().unselect();
-      found.select();
-      cy.center(found);
-      setDetail(String(found.first().id()));
-    }
+    const ids = matchNodes(pool, "", new Set());
+    const first = pool[0];
+    setRfNodes((current) =>
+      current.map((n) => ({ ...n, selected: ids.has(n.id) })),
+    );
+    // fitView by node id follows parent groups automatically.
+    fitView({ nodes: [{ id: first.id }], padding: 0.4, maxZoom: 1.2, duration: reduceMotion ? 0 : 300 });
+    setDetail(first.id);
   }
 
   function exportPng() {
-    const cy = cyRef.current;
-    if (!cy) return;
+    const viewport = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+    if (!viewport) return;
     void (async () => {
-      const blob = (await cy.png({
-        output: "blob",
-        bg: theme === "light" ? "#ffffff" : "#18181b",
-      })) as unknown as Blob;
+      const url = await toPng(viewport, {
+        backgroundColor: theme === "light" ? "#ffffff" : "#18181b",
+      });
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
+      link.href = url;
       link.download = "evidence-graph.png";
       link.click();
-      window.setTimeout(() => URL.revokeObjectURL(link.href), 5000);
     })();
   }
 
@@ -190,32 +216,34 @@ export function GraphExplorer({
         <label className="flex items-center gap-1">
           layout
           <select
-            value={layout}
-            onChange={(e) => setLayout(e.target.value as LayoutName)}
+            value={direction}
+            onChange={(e) => setDirection(e.target.value as FlowDirection)}
             aria-label="graph layout"
             className="rounded bg-(--surface-2) px-2 py-1 text-sm"
           >
-            <option value="cose">force</option>
-            <option value="breadthfirst">layered</option>
-            <option value="concentric">radial</option>
+            {(Object.keys(FLOW_LABEL) as FlowDirection[]).map((d) => (
+              <option key={d} value={d}>
+                {FLOW_LABEL[d]}
+              </option>
+            ))}
           </select>
         </label>
         <button
-          onClick={() => zoom(1.25)}
+          onClick={() => zoomIn({ duration: reduceMotion ? 0 : 200 })}
           aria-label="zoom in"
           className="rounded bg-(--surface-2) px-2 py-1 text-sm"
         >
           +
         </button>
         <button
-          onClick={() => zoom(0.8)}
+          onClick={() => zoomOut({ duration: reduceMotion ? 0 : 200 })}
           aria-label="zoom out"
           className="rounded bg-(--surface-2) px-2 py-1 text-sm"
         >
           −
         </button>
         <button
-          onClick={() => cyRef.current?.fit(undefined, 30)}
+          onClick={() => fitView({ padding: 0.15 })}
           aria-label="fit graph to view"
           className="rounded bg-(--surface-2) px-2 py-1 text-sm"
         >
@@ -266,15 +294,30 @@ export function GraphExplorer({
         ))}
       </div>
       <p className="mt-1 text-sm text-(--muted)">
-        Diamonds are commits, rounded squares files, circles symbols, octagons
-        tests. Click a node for detail; uncheck types to filter.
+        Cards are commits, files, symbols and tests. Click a card for detail;
+        uncheck types to filter.
       </p>
       <div
-        ref={containerRef}
         role="application"
         aria-label="evidence graph"
         className="mt-2 h-96 w-full rounded border border-(--border) bg-(--surface)"
-      />
+      >
+        <ReactFlow
+          nodes={rfNodes}
+          edges={rfEdges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
+          fitView
+          minZoom={0.2}
+          maxZoom={2.5}
+          proOptions={{ hideAttribution: false }}
+        >
+          <Background />
+          <MiniMap pannable zoomable aria-label="graph minimap" />
+        </ReactFlow>
+      </div>
       {detailNode && (
         <div className="mt-2 rounded border border-(--border) bg-(--surface) p-3 text-sm" aria-live="polite">
           <p className="font-mono">
@@ -293,5 +336,17 @@ export function GraphExplorer({
         </div>
       )}
     </div>
+  );
+}
+
+export function GraphExplorer(props: {
+  nodes?: GraphNode[];
+  edges?: GraphEdge[];
+  candidates?: CandidateScore[];
+}) {
+  return (
+    <ReactFlowProvider>
+      <ExplorerInner {...props} />
+    </ReactFlowProvider>
   );
 }

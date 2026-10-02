@@ -1,5 +1,5 @@
 import type { Analysis, CandidatePage } from "./types";
-import type { GraphEdge, GraphNode } from "./graph/cytoscape";
+import type { GraphEdge, GraphNode } from "./graph/model";
 
 export interface IndexEntry {
   id: string;

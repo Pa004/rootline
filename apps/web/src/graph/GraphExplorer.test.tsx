@@ -2,84 +2,39 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { afterEach, assert, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { GraphExplorer } from "./GraphExplorer";
 import {
   DEMO_EDGES,
   DEMO_NODES,
-  buildElements,
-  layoutFor,
   neighborsWithin,
-  nodeStyle,
   orderTrace,
   parseSmartFilter,
   tracePath,
   type GraphEdge,
-} from "./cytoscape";
+} from "./model";
 
-const mocks = vi.hoisted(() => ({
-  cy: {
-    on: vi.fn(),
-    destroy: vi.fn(),
-    stop: vi.fn(),
-    zoom: vi.fn(() => 1),
-    width: () => 800,
-    height: () => 600,
-    fit: vi.fn(),
-    center: vi.fn(),
-    add: vi.fn(),
-    layout: vi.fn(() => ({ run: vi.fn() })),
-    elements: () => ({ unselect: vi.fn(), remove: vi.fn() }),
-    nodes: () => ({ filter: () => ({ length: 0 }) }),
-    png: vi.fn(async () => new Blob(["x"], { type: "image/png" })),
-  },
-}));
-
-vi.mock("cytoscape", () => ({ default: () => mocks.cy }));
+vi.mock("html-to-image", () => ({ toPng: vi.fn(async () => "data:image/png;base64,x") }));
 
 function Providers({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
 
+function stubLayoutApis() {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-});
-
-describe("buildElements", () => {
-  it("hides filtered types and their edges", () => {
-    const elements = buildElements(DEMO_NODES, DEMO_EDGES, new Set(["symbol"]));
-    const ids = elements.map((e) => e.data.id);
-    expect(ids).not.toContain("symbol:app/db.py::get_db");
-    expect(ids).toContain("file:app/db.py");
-    expect(ids).toHaveLength(7 + 6);
-  });
-
-  it("keeps everything with no filters", () => {
-    const elements = buildElements(DEMO_NODES, DEMO_EDGES, new Set());
-    expect(elements).toHaveLength(DEMO_NODES.length + DEMO_EDGES.length);
-  });
-
-  it("uses stable edge ids carrying the kind", () => {
-    const elements = buildElements(DEMO_NODES, DEMO_EDGES, new Set());
-    const edge = elements.find(
-      (e) =>
-        "source" in e.data &&
-        e.data.source === "file:app/users.py" &&
-        "kind" in e.data &&
-        e.data.kind === "depends",
-    );
-    assert(edge && "kind" in edge.data);
-    expect(edge.data.id).toBe("file:app/users.py→file:app/db.py:depends");
-    expect(edge.data.kind).toBe("depends");
-  });
-
-  it("bakes top scores into commit labels", () => {
-    const nodes = [{ ...DEMO_NODES[0], score: 0.52 }];
-    const elements = buildElements(nodes, [], new Set());
-    expect(elements[0].data.label).toContain("0.52");
-  });
 });
 
 describe("tracePath", () => {
@@ -158,65 +113,30 @@ describe("parseSmartFilter", () => {
   });
 });
 
-describe("nodeStyle", () => {
-  it("gives commits a non-color encoding distinct from files", () => {
-    expect(nodeStyle("commit").shape).not.toBe(nodeStyle("file").shape);
-    expect(nodeStyle("bogus").shape).toBe("ellipse");
-  });
-});
-
-describe("layoutFor", () => {
-  it("maps names to cytoscape layouts with animation flags", () => {
-    expect(layoutFor("cose", true).name).toBe("cose");
-    expect(layoutFor("breadthfirst", false)).toMatchObject({
-      name: "breadthfirst",
-      directed: true,
-      animate: false,
-    });
-    expect(layoutFor("concentric", true).name).toBe("concentric");
-  });
-});
-
 describe("GraphExplorer", () => {
-  it("renders filters and announces selection", () => {
-    const { container } = render(
+  it("renders DOM cards instead of canvas, with filters and legend", () => {
+    stubLayoutApis();
+    render(
       <Providers>
-        <GraphExplorer />
+        <GraphExplorer nodes={DEMO_NODES} edges={DEMO_EDGES} />
       </Providers>,
     );
     expect(screen.getByLabelText("show commit nodes")).toBeInTheDocument();
-    expect(
-      container.querySelector('[aria-label="evidence graph"]'),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("application", { name: "evidence graph" })).toBeInTheDocument();
+    // Node cards are real text (selectable, screen-reader visible).
+    expect(screen.getAllByText("db.py").length).toBeGreaterThan(0);
+    expect(document.querySelector("canvas")).toBeNull();
+    expect(screen.getByLabelText("edge legend")).toBeInTheDocument();
+    expect(screen.getByLabelText("trace causal path")).toBeChecked();
     fireEvent.click(screen.getByLabelText("show symbol nodes"));
     expect(screen.getByLabelText("show symbol nodes")).not.toBeChecked();
   });
 
-  it("shows legend, trace toggle and detail panel", () => {
-    render(
-      <Providers>
-        <GraphExplorer />
-      </Providers>,
-    );
-    expect(screen.getByLabelText("edge legend")).toBeInTheDocument();
-    expect(screen.getByLabelText("trace causal path")).toBeChecked();
-  });
-
   it("finds a node by label and shows its detail", () => {
-    const node = {
-      id: () => "file:app/db.py",
-      data: (key: string) => (key === "label" ? "db.py" : "file:app/db.py"),
-      select: vi.fn(),
-    };
-    const collection = {
-      length: 1,
-      first: () => node,
-      select: vi.fn(),
-    };
-    mocks.cy.nodes = () => ({ filter: () => collection });
+    stubLayoutApis();
     render(
       <Providers>
-        <GraphExplorer />
+        <GraphExplorer nodes={DEMO_NODES} edges={DEMO_EDGES} />
       </Providers>,
     );
     fireEvent.change(screen.getByLabelText("find node by label"), {
@@ -226,26 +146,33 @@ describe("GraphExplorer", () => {
     expect(screen.getByText(/file:app\/db\.py/)).toBeInTheDocument();
   });
 
-  it("zooms, fits and exports PNG through the cytoscape handle", async () => {
-    const createObjectURL = vi.fn(() => "blob:fake");
-    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL: vi.fn() });
-    const click = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = vi.fn();
-    try {
-      render(
-        <Providers>
-          <GraphExplorer />
-        </Providers>,
-      );
-      fireEvent.click(screen.getByLabelText("zoom in"));
-      expect(mocks.cy.zoom).toHaveBeenCalled();
-      fireEvent.click(screen.getByLabelText("fit graph to view"));
-      expect(mocks.cy.fit).toHaveBeenCalled();
-      fireEvent.click(screen.getByLabelText("export graph as PNG"));
-      await vi.waitFor(() => expect(mocks.cy.png).toHaveBeenCalled());
-      expect(createObjectURL).toHaveBeenCalled();
-    } finally {
-      HTMLAnchorElement.prototype.click = click;
-    }
+  it("announces no-match searches without crashing", () => {
+    stubLayoutApis();
+    render(
+      <Providers>
+        <GraphExplorer nodes={DEMO_NODES} edges={DEMO_EDGES} />
+      </Providers>,
+    );
+    fireEvent.change(screen.getByLabelText("find node by label"), {
+      target: { value: "zzz-no-such-node" },
+    });
+    fireEvent.click(screen.getByText("Find"));
+    expect(screen.getByRole("status")).toHaveTextContent(/No nodes match/);
+  });
+
+  it("switches direction and exports PNG", async () => {
+    stubLayoutApis();
+    const { toPng } = await import("html-to-image");
+    render(
+      <Providers>
+        <GraphExplorer nodes={DEMO_NODES} edges={DEMO_EDGES} />
+      </Providers>,
+    );
+    fireEvent.change(screen.getByLabelText("graph layout"), { target: { value: "TB" } });
+    expect(screen.getByLabelText("graph layout")).toHaveValue("TB");
+    fireEvent.click(screen.getByLabelText("zoom in"));
+    fireEvent.click(screen.getByLabelText("fit graph to view"));
+    fireEvent.click(screen.getByLabelText("export graph as PNG"));
+    await vi.waitFor(() => expect(toPng).toHaveBeenCalled());
   });
 });

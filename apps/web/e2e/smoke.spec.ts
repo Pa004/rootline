@@ -26,7 +26,7 @@ test("theme toggle switches data-theme", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
-test("graph explorer renders cytoscape canvas", async ({ page }) => {
+test("graph explorer renders flow canvas", async ({ page }) => {
   await goAnalysis(page);
   await page.getByRole("button", { name: "Graph explorer" }).click();
   await expect(page.getByRole("application", { name: "evidence graph" })).toBeVisible();
@@ -36,11 +36,11 @@ test("graph explorer renders cytoscape canvas", async ({ page }) => {
 test("graph controls switch layout, search and export", async ({ page }) => {
   await goAnalysis(page);
   await page.getByRole("button", { name: "Graph explorer" }).click();
-  await page.getByLabel("graph layout").selectOption("breadthfirst");
+  await page.getByLabel("graph layout").selectOption("TB");
   await page.getByLabel("find node by label").fill("db.py");
   await page.getByRole("button", { name: "Find", exact: true }).click();
   await expect(page.getByText("file:app/db.py", { exact: false }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "zoom in" })).toBeVisible();
+  await expect(page.getByRole("toolbar", { name: "graph controls" }).getByRole("button", { name: "zoom in" })).toBeVisible();
   await expect(page.getByRole("button", { name: "export graph as PNG" })).toBeVisible();
 });
 
