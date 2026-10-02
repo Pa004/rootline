@@ -10,6 +10,7 @@ import {
   LIGHT_GRAPH,
   buildElements,
   createGraph,
+  layoutFor,
   tracePath,
   type GraphEdge,
   type GraphNode,
@@ -84,7 +85,7 @@ export function GraphExplorer({
     if (!containerRef.current) return;
     const cy = createGraph(
       containerRef.current,
-      buildElements(nodes, baseEdges, hidden, traced),
+      [],
       theme === "light" ? LIGHT_GRAPH : DARK_GRAPH,
       !reduceMotion,
       layout,
@@ -102,7 +103,20 @@ export function GraphExplorer({
       cy.destroy();
       cyRef.current = null;
     };
-  }, [nodes, baseEdges, hidden, select, theme, reduceMotion, traced, layout]);
+  }, [select, theme, reduceMotion, layout]);
+
+  const elements = useMemo(
+    () => buildElements(nodes, baseEdges, hidden, traced),
+    [nodes, baseEdges, hidden, traced],
+  );
+
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    cy.elements().remove();
+    cy.add(elements);
+    cy.layout(layoutFor(layout, !reduceMotion)).run();
+  }, [elements, layout, reduceMotion]);
 
   function zoom(factor: number) {
     const cy = cyRef.current;
