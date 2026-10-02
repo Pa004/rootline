@@ -23,8 +23,8 @@ export const DEMO_NODES: GraphNode[] = [
   { id: "file:tests/test_users.py", type: "file", label: "test_users.py" },
   { id: "symbol:app/db.py::get_db", type: "symbol", label: "get_db()" },
   { id: "symbol:app/users.py::create_user", type: "symbol", label: "create_user()" },
-  { id: "test::test_create_user", type: "test", label: "test_create_user ✕" },
-  { id: "test::test_list_users", type: "test", label: "test_list_users ✓" },
+  { id: "test::test_create_user", type: "test", label: "test_create_user ✕", outcome: "failed" },
+  { id: "test::test_list_users", type: "test", label: "test_list_users ✓", outcome: "passed" },
 ];
 
 export const DEMO_EDGES: GraphEdge[] = [
@@ -105,8 +105,7 @@ function rankLabel(n: GraphNode): string {
   return n.label;
 }
 
-/** Nodes/edges on any shortest commit→failing-test path (undirected BFS). */
-export function tracePath(
+/** Nodes/edges on any shortest commit→failing-test path (undirected BFS). */export function tracePath(
   edges: GraphEdge[],
   startId: string,
   goalIds: Set<string>,
@@ -146,6 +145,101 @@ export function tracePath(
     }
   }
   return { nodes, edges: edgeIds };
+}
+
+/** Ordered node ids along the shortest start→goal path (first reachable goal). */
+export function orderTrace(
+  edges: GraphEdge[],
+  startId: string,
+  goalIds: Set<string>,
+): string[] {
+  const adjacency = new Map<string, string[]>();
+  const link = (a: string, b: string) => {
+    if (!adjacency.has(a)) adjacency.set(a, []);
+    adjacency.get(a)!.push(b);
+  };
+  for (const e of edges) {
+    link(e.source, e.target);
+    link(e.target, e.source);
+  }
+  const prev = new Map<string, string>([[startId, ""]]);
+  const queue = [startId];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    for (const to of adjacency.get(current) ?? []) {
+      if (!prev.has(to)) {
+        prev.set(to, current);
+        queue.push(to);
+      }
+    }
+  }
+  const goal = [...goalIds].find((g) => prev.has(g));
+  if (!goal) return [];
+  const path = [goal];
+  while (path[path.length - 1] !== startId) {
+    path.push(prev.get(path[path.length - 1])!);
+  }
+  return path.reverse();
+}
+
+/** Node ids within `depth` undirected hops of any seed. */
+export function neighborsWithin(
+  edges: GraphEdge[],
+  seeds: Set<string>,
+  depth: number,
+): Set<string> {
+  const adjacency = new Map<string, Set<string>>();
+  const link = (a: string, b: string) => {
+    if (!adjacency.has(a)) adjacency.set(a, new Set());
+    adjacency.get(a)!.add(b);
+  };
+  for (const e of edges) {
+    link(e.source, e.target);
+    link(e.target, e.source);
+  }
+  const seen = new Set(seeds);
+  let frontier = [...seeds];
+  for (let i = 0; i < depth && frontier.length > 0; i += 1) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      for (const to of adjacency.get(id) ?? []) {
+        if (!seen.has(to)) {
+          seen.add(to);
+          next.push(to);
+        }
+      }
+    }
+    frontier = next;
+  }
+  return seen;
+}
+
+export interface SmartFilter {
+  text: string;
+  kinds: Set<GraphNode["type"]>;
+  affects: string;
+}
+
+/**
+ * Mini query language: `kind:file`, `affects:test_create_user`, or plain
+ * label text. Tokens combine with AND (kinds intersect).
+ */
+export function parseSmartFilter(query: string): SmartFilter {
+  const kinds = new Set<GraphNode["type"]>();
+  const known: GraphNode["type"][] = ["commit", "file", "symbol", "test"];
+  let affects = "";
+  const textParts: string[] = [];
+  for (const token of query.toLowerCase().split(/\s+/).filter(Boolean)) {
+    if (token.startsWith("kind:") || token.startsWith("type:")) {
+      const kind = token.split(":", 2)[1] as GraphNode["type"];
+      if (known.includes(kind)) kinds.add(kind);
+    } else if (token.startsWith("affects:")) {
+      affects = token.slice("affects:".length);
+    } else {
+      textParts.push(token);
+    }
+  }
+  return { text: textParts.join(" "), kinds, affects };
 }
 
 export function nodeStyle(type: string): { shape: cytoscape.Css.NodeShape; color: string } {

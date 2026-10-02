@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-const TABS = ["Candidates", "Graph explorer", "Report"] as const;
+const TABS = ["Candidates", "Graph explorer", "Timeline", "Treemap", "Report"] as const;
 const THEMES = ["dark", "light"] as const;
 const VIEWS = ["Dashboard", "Benchmarks", "Examples", "Tutorial"] as const;
 

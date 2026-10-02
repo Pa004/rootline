@@ -1,25 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useUi } from "../store";
-import { apiConfigured, fetchGraph } from "../api";
 import type { CandidateScore } from "../types";
 import {
   DARK_GRAPH,
-  DEMO_EDGES,
-  DEMO_NODES,
   LIGHT_GRAPH,
   buildElements,
   createGraph,
   layoutFor,
-  tracePath,
+  neighborsWithin,
+  parseSmartFilter,
   type GraphEdge,
   type GraphNode,
   type LayoutName,
 } from "./cytoscape";
+import { useGraphData } from "./useGraphData";
 
 const TYPES: GraphNode["type"][] = ["commit", "file", "symbol", "test"];
-
-const ANALYSIS_ID = (import.meta.env.VITE_ANALYSIS_ID as string | undefined) ?? "";
 
 const EDGE_LEGEND: { kind: GraphEdge["kind"]; swatch: string; label: string }[] = [
   { kind: "changes", swatch: "#38bdf8", label: "changes" },
@@ -47,39 +43,7 @@ export function GraphExplorer({
   const [query, setQuery] = useState("");
   const { select, theme, reduceMotion } = useUi();
 
-  const live = apiConfigured() && ANALYSIS_ID.length > 0;
-  const remote = useQuery({
-    queryKey: ["graph", ANALYSIS_ID],
-    queryFn: () => fetchGraph(ANALYSIS_ID),
-    enabled: live && propNodes === undefined,
-    retry: false,
-    staleTime: 60000,
-  });
-  const baseNodes = propNodes ?? remote.data?.nodes ?? DEMO_NODES;
-  const baseEdges = propEdges ?? remote.data?.edges ?? DEMO_EDGES;
-
-  const ranks = useMemo(() => {
-    const top = [...candidates].sort((a, b) => b.score - a.score).slice(0, 3);
-    return new Map(top.map((c) => [`commit:${c.commit_sha}`, c.score]));
-  }, [candidates]);
-
-  const nodes: GraphNode[] = useMemo(
-    () =>
-      baseNodes.map((n) =>
-        n.type === "commit" && ranks.has(n.id) ? { ...n, score: ranks.get(n.id) } : n,
-      ),
-    [baseNodes, ranks],
-  );
-
-  const traced = useMemo(() => {
-    if (!trace || ranks.size === 0) return null;
-    const topId = [...ranks.entries()].sort((a, b) => b[1] - a[1])[0][0];
-    const failing = new Set(
-      nodes.filter((n) => n.type === "test" && n.outcome === "failed").map((n) => n.id),
-    );
-    if (failing.size === 0) return null;
-    return tracePath(baseEdges, topId, failing);
-  }, [trace, ranks, nodes, baseEdges]);
+  const { nodes, edges: baseEdges, traced } = useGraphData(candidates, propNodes, propEdges, trace);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -127,16 +91,35 @@ export function GraphExplorer({
     });
   }
 
-  function search(label: string) {
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function search(raw: string) {
     const cy = cyRef.current;
-    if (!cy || label.trim() === "") return;
-    const found = cy
-      .nodes()
-      .filter((n) => String(n.data("label")).toLowerCase().includes(label.toLowerCase()));
+    if (!cy || raw.trim() === "") return;
+    const filter = parseSmartFilter(raw);
+    let pool = nodes.filter(
+      (n) =>
+        (filter.kinds.size === 0 || filter.kinds.has(n.type)) &&
+        (filter.text === "" || n.label.toLowerCase().includes(filter.text)),
+    );
+    if (filter.affects !== "") {
+      const seeds = new Set(
+        nodes.filter((n) => n.label.toLowerCase().includes(filter.affects)).map((n) => n.id),
+      );
+      const scope = neighborsWithin(baseEdges, seeds, 2);
+      pool = pool.filter((n) => scope.has(n.id));
+    }
+    if (pool.length === 0) {
+      setNotice(`No nodes match "${raw}". Try "kind:file", "affects:<name>" or plain text.`);
+      return;
+    }
+    setNotice(null);
+    const ids = new Set(pool.map((n) => n.id));
+    const found = cy.nodes().filter((n) => ids.has(String(n.id())));
     if (found.length > 0) {
       cy.elements().unselect();
       found.select();
-      cy.center(found.first());
+      cy.center(found);
       setDetail(String(found.first().id()));
     }
   }
@@ -249,7 +232,7 @@ export function GraphExplorer({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="find node…"
+            placeholder="find node… (kind:file, affects:name)"
             aria-label="find node by label"
             className="rounded bg-(--surface-2) px-2 py-1 text-sm"
           />
@@ -257,6 +240,11 @@ export function GraphExplorer({
             Find
           </button>
         </form>
+        {notice && (
+          <p className="text-sm text-(--muted)" role="status">
+            {notice}
+          </p>
+        )}
         <button
           onClick={exportPng}
           aria-label="export graph as PNG"

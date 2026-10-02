@@ -9,7 +9,10 @@ import {
   DEMO_NODES,
   buildElements,
   layoutFor,
+  neighborsWithin,
   nodeStyle,
+  orderTrace,
+  parseSmartFilter,
   tracePath,
   type GraphEdge,
 } from "./cytoscape";
@@ -98,6 +101,60 @@ describe("tracePath", () => {
     const traced = tracePath(edges, "commit:c2", new Set(["test:t"]));
     expect(traced.nodes).toEqual(new Set());
     expect(traced.edges).toEqual(new Set());
+  });
+});
+
+describe("orderTrace", () => {
+  it("orders nodes from commit to failing test", () => {
+    const ordered = orderTrace(
+      [
+        { source: "commit:c1", target: "file:a", kind: "changes" },
+        { source: "file:a", target: "file:b", kind: "depends" },
+        { source: "test:t", target: "file:b", kind: "fails" },
+      ],
+      "commit:c1",
+      new Set(["test:t"]),
+    );
+    expect(ordered).toEqual(["commit:c1", "file:a", "file:b", "test:t"]);
+  });
+
+  it("returns empty when nothing is reachable", () => {
+    expect(orderTrace([], "commit:c1", new Set(["test:t"]))).toEqual([]);
+  });
+});
+
+describe("neighborsWithin", () => {
+  const edges: GraphEdge[] = [
+    { source: "a", target: "b", kind: "depends" },
+    { source: "b", target: "c", kind: "depends" },
+    { source: "c", target: "d", kind: "depends" },
+  ];
+
+  it("expands N hops from seeds", () => {
+    expect(neighborsWithin(edges, new Set(["b"]), 1)).toEqual(new Set(["a", "b", "c"]));
+    expect(neighborsWithin(edges, new Set(["b"]), 2)).toEqual(
+      new Set(["a", "b", "c", "d"]),
+    );
+  });
+});
+
+describe("parseSmartFilter", () => {
+  it("parses kinds, affects and text", () => {
+    expect(parseSmartFilter("kind:file db.py")).toEqual({
+      text: "db.py",
+      kinds: new Set(["file"]),
+      affects: "",
+    });
+    expect(parseSmartFilter("affects:test_create_user")).toEqual({
+      text: "",
+      kinds: new Set(),
+      affects: "test_create_user",
+    });
+    expect(parseSmartFilter("type:bogus hello")).toEqual({
+      text: "hello",
+      kinds: new Set(),
+      affects: "",
+    });
   });
 });
 

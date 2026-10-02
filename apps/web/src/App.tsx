@@ -15,10 +15,18 @@ import type { TabId } from "./types";
 const GraphExplorer = lazy(() =>
   import("./graph/GraphExplorer").then((m) => ({ default: m.GraphExplorer })),
 );
+const TimelineView = lazy(() =>
+  import("./graph/TimelineView").then((m) => ({ default: m.TimelineView })),
+);
+const TreemapView = lazy(() =>
+  import("./graph/TreemapView").then((m) => ({ default: m.TreemapView })),
+);
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "candidates", label: "Candidates" },
   { id: "graph", label: "Graph explorer" },
+  { id: "timeline", label: "Timeline" },
+  { id: "treemap", label: "Treemap" },
   { id: "report", label: "Report" },
 ];
 
@@ -144,6 +152,16 @@ export default function App() {
           {view === "analysis" && tab === "graph" && (
             <Suspense fallback={<p className="text-(--muted)">Loading graph…</p>}>
               <GraphExplorer candidates={analysis.candidates} />
+            </Suspense>
+          )}
+          {view === "analysis" && tab === "timeline" && (
+            <Suspense fallback={<p className="text-(--muted)">Loading timeline…</p>}>
+              <TimelineView candidates={analysis.candidates} />
+            </Suspense>
+          )}
+          {view === "analysis" && tab === "treemap" && (
+            <Suspense fallback={<p className="text-(--muted)">Loading treemap…</p>}>
+              <TreemapView candidates={analysis.candidates} />
             </Suspense>
           )}
               {view === "analysis" && tab === "report" && (

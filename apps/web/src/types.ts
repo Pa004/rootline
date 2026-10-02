@@ -23,4 +23,4 @@ export interface CandidatePage {
   next_cursor: string | null;
 }
 
-export type TabId = "candidates" | "graph" | "report";
+export type TabId = "candidates" | "graph" | "timeline" | "treemap" | "report";
