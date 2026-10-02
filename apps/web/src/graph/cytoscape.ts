@@ -45,12 +45,28 @@ const NODE_STYLE: Record<GraphNode["type"], { shape: cytoscape.Css.NodeShape; co
   test: { shape: "octagon", color: "#fbbf24" },
 };
 
+export interface TraceHighlight {
+  nodes: Set<string>;
+  edges: Set<string>;
+}
+
 export function buildElements(
   nodes: GraphNode[],
   edges: GraphEdge[],
   hiddenTypes: Set<string>,
+  highlight: TraceHighlight | null = null,
 ) {
   const visible = new Set(nodes.filter((n) => !hiddenTypes.has(n.type)).map((n) => n.id));
+  const kept = edges.filter((e) => visible.has(e.source) && visible.has(e.target));
+  const degree = new Map<string, number>();
+  for (const e of kept) {
+    degree.set(e.source, (degree.get(e.source) ?? 0) + 1);
+    degree.set(e.target, (degree.get(e.target) ?? 0) + 1);
+  }
+  const nodeClass = (id: string) =>
+    highlight ? (highlight.nodes.has(id) ? "traced" : "dimmed") : "";
+  const edgeClass = (id: string) =>
+    highlight ? (highlight.edges.has(id) ? "traced" : "dimmed") : "";
   return [
     ...nodes
       .filter((n) => visible.has(n.id))
@@ -61,19 +77,23 @@ export function buildElements(
           type: n.type,
           outcome: n.outcome ?? "",
           score: n.score ?? -1,
+          size: Math.max(degree.get(n.id) ?? 1, 1),
         },
+        classes: nodeClass(n.id),
       })),
-    ...edges
-      .filter((e) => visible.has(e.source) && visible.has(e.target))
-      .map((e) => ({
-        data: {
-          id: `${e.source}→${e.target}:${e.kind}`,
-          source: e.source,
-          target: e.target,
-          label: e.kind,
-          kind: e.kind,
-        },
-      })),
+    ...kept.map((e) => {
+        const id = `${e.source}→${e.target}:${e.kind}`;
+        return {
+          data: {
+            id,
+            source: e.source,
+            target: e.target,
+            label: e.kind,
+            kind: e.kind,
+          },
+          classes: edgeClass(id),
+        };
+      }),
   ];
 }
 
@@ -141,16 +161,35 @@ export interface GraphTheme {
 export const DARK_GRAPH: GraphTheme = { label: "#e4e4e7", edge: "#52525b", accent: "#5eead4" };
 export const LIGHT_GRAPH: GraphTheme = { label: "#27272a", edge: "#a1a1aa", accent: "#0f766e" };
 
+export type LayoutName = "cose" | "breadthfirst" | "concentric";
+
+export function layoutFor(name: LayoutName, animate: boolean) {
+  if (name === "breadthfirst") {
+    return { name: "breadthfirst", directed: true, padding: 30, spacingFactor: 1.4, animate };
+  }
+  if (name === "concentric") {
+    return {
+      name: "concentric",
+      concentric: (node: { degree: (includeLoops?: boolean) => number }) => node.degree(),
+      levelWidth: () => 2,
+      padding: 30,
+      animate,
+    };
+  }
+  return { name: "cose", padding: 30, animate, animationDuration: 400 };
+}
+
 export function createGraph(
   container: HTMLElement,
   elements: ReturnType<typeof buildElements>,
   theme: GraphTheme = DARK_GRAPH,
   animate = true,
+  layoutName: LayoutName = "cose",
 ) {
   return cytoscape({
     container,
     elements,
-    layout: { name: "cose", animate, animationDuration: 400 },
+    layout: layoutFor(layoutName, animate),
     style: [
       {
         selector: "node",
@@ -160,6 +199,8 @@ export function createGraph(
           color: theme.label,
           "background-color": "#71717a",
           shape: "ellipse",
+          width: "mapData(size, 1, 10, 26, 60)",
+          height: "mapData(size, 1, 10, 26, 60)",
         },
       },
       ...Object.entries(NODE_STYLE).map(([type, s]) => ({

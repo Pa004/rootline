@@ -8,14 +8,29 @@ import {
   DEMO_EDGES,
   DEMO_NODES,
   buildElements,
+  layoutFor,
   nodeStyle,
   tracePath,
   type GraphEdge,
 } from "./cytoscape";
 
-vi.mock("cytoscape", () => ({
-  default: () => ({ on: () => undefined, destroy: () => undefined }),
+const mocks = vi.hoisted(() => ({
+  cy: {
+    on: vi.fn(),
+    destroy: vi.fn(),
+    stop: vi.fn(),
+    zoom: vi.fn(() => 1),
+    width: () => 800,
+    height: () => 600,
+    fit: vi.fn(),
+    center: vi.fn(),
+    elements: () => ({ unselect: vi.fn() }),
+    nodes: () => ({ filter: () => ({ length: 0 }) }),
+    png: vi.fn(async () => new Blob(["x"], { type: "image/png" })),
+  },
 }));
+
+vi.mock("cytoscape", () => ({ default: () => mocks.cy }));
 
 function Providers({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -24,6 +39,7 @@ function Providers({ children }: { children: ReactNode }) {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
 });
 
 describe("buildElements", () => {
@@ -90,6 +106,18 @@ describe("nodeStyle", () => {
   });
 });
 
+describe("layoutFor", () => {
+  it("maps names to cytoscape layouts with animation flags", () => {
+    expect(layoutFor("cose", true).name).toBe("cose");
+    expect(layoutFor("breadthfirst", false)).toMatchObject({
+      name: "breadthfirst",
+      directed: true,
+      animate: false,
+    });
+    expect(layoutFor("concentric", true).name).toBe("concentric");
+  });
+});
+
 describe("GraphExplorer", () => {
   it("renders filters and announces selection", () => {
     const { container } = render(
@@ -113,5 +141,52 @@ describe("GraphExplorer", () => {
     );
     expect(screen.getByLabelText("edge legend")).toBeInTheDocument();
     expect(screen.getByLabelText("trace causal path")).toBeChecked();
+  });
+
+  it("finds a node by label and shows its detail", () => {
+    const node = {
+      id: () => "file:app/db.py",
+      data: (key: string) => (key === "label" ? "db.py" : "file:app/db.py"),
+      select: vi.fn(),
+    };
+    const collection = {
+      length: 1,
+      first: () => node,
+      select: vi.fn(),
+    };
+    mocks.cy.nodes = () => ({ filter: () => collection });
+    render(
+      <Providers>
+        <GraphExplorer />
+      </Providers>,
+    );
+    fireEvent.change(screen.getByLabelText("find node by label"), {
+      target: { value: "db.py" },
+    });
+    fireEvent.click(screen.getByText("Find"));
+    expect(screen.getByText(/file:app\/db\.py/)).toBeInTheDocument();
+  });
+
+  it("zooms, fits and exports PNG through the cytoscape handle", async () => {
+    const createObjectURL = vi.fn(() => "blob:fake");
+    vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL: vi.fn() });
+    const click = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = vi.fn();
+    try {
+      render(
+        <Providers>
+          <GraphExplorer />
+        </Providers>,
+      );
+      fireEvent.click(screen.getByLabelText("zoom in"));
+      expect(mocks.cy.zoom).toHaveBeenCalled();
+      fireEvent.click(screen.getByLabelText("fit graph to view"));
+      expect(mocks.cy.fit).toHaveBeenCalled();
+      fireEvent.click(screen.getByLabelText("export graph as PNG"));
+      await vi.waitFor(() => expect(mocks.cy.png).toHaveBeenCalled());
+      expect(createObjectURL).toHaveBeenCalled();
+    } finally {
+      HTMLAnchorElement.prototype.click = click;
+    }
   });
 });

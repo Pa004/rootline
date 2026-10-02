@@ -13,6 +13,7 @@ import {
   tracePath,
   type GraphEdge,
   type GraphNode,
+  type LayoutName,
 } from "./cytoscape";
 
 const TYPES: GraphNode["type"][] = ["commit", "file", "symbol", "test"];
@@ -41,6 +42,8 @@ export function GraphExplorer({
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<string | null>(null);
   const [trace, setTrace] = useState(true);
+  const [layout, setLayout] = useState<LayoutName>("cose");
+  const [query, setQuery] = useState("");
   const { select, theme, reduceMotion } = useUi();
 
   const live = apiConfigured() && ANALYSIS_ID.length > 0;
@@ -81,16 +84,12 @@ export function GraphExplorer({
     if (!containerRef.current) return;
     const cy = createGraph(
       containerRef.current,
-      buildElements(nodes, baseEdges, hidden),
+      buildElements(nodes, baseEdges, hidden, traced),
       theme === "light" ? LIGHT_GRAPH : DARK_GRAPH,
       !reduceMotion,
+      layout,
     );
     cyRef.current = cy;
-    if (traced) {
-      cy.elements().addClass("dimmed");
-      traced.nodes.forEach((id) => cy.getElementById(id).removeClass("dimmed").addClass("traced"));
-      traced.edges.forEach((id) => cy.getElementById(id).removeClass("dimmed").addClass("traced"));
-    }
     cy.on("tap", "node", (event) => {
       const id = String(event.target.id());
       setDetail(id);
@@ -99,10 +98,50 @@ export function GraphExplorer({
       }
     });
     return () => {
+      cy.stop(true);
       cy.destroy();
       cyRef.current = null;
     };
-  }, [nodes, baseEdges, hidden, select, theme, reduceMotion, traced]);
+  }, [nodes, baseEdges, hidden, select, theme, reduceMotion, traced, layout]);
+
+  function zoom(factor: number) {
+    const cy = cyRef.current;
+    if (!cy) return;
+    cy.zoom({
+      level: cy.zoom() * factor,
+      renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 },
+    });
+  }
+
+  function search(label: string) {
+    const cy = cyRef.current;
+    if (!cy || label.trim() === "") return;
+    const found = cy
+      .nodes()
+      .filter((n) => String(n.data("label")).toLowerCase().includes(label.toLowerCase()));
+    if (found.length > 0) {
+      cy.elements().unselect();
+      found.select();
+      cy.center(found.first());
+      setDetail(String(found.first().id()));
+    }
+  }
+
+  function exportPng() {
+    const cy = cyRef.current;
+    if (!cy) return;
+    void (async () => {
+      const blob = (await cy.png({
+        output: "blob",
+        bg: theme === "light" ? "#ffffff" : "#18181b",
+      })) as unknown as Blob;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "evidence-graph.png";
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+    })();
+  }
 
   function toggle(type: string) {
     setHidden((prev) => {
@@ -146,6 +185,72 @@ export function GraphExplorer({
           trace path
         </label>
       </fieldset>
+      <div
+        className="mt-2 flex flex-wrap items-center gap-2 text-sm"
+        role="toolbar"
+        aria-label="graph controls"
+      >
+        <label className="flex items-center gap-1">
+          layout
+          <select
+            value={layout}
+            onChange={(e) => setLayout(e.target.value as LayoutName)}
+            aria-label="graph layout"
+            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+          >
+            <option value="cose">force</option>
+            <option value="breadthfirst">layered</option>
+            <option value="concentric">radial</option>
+          </select>
+        </label>
+        <button
+          onClick={() => zoom(1.25)}
+          aria-label="zoom in"
+          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+        >
+          +
+        </button>
+        <button
+          onClick={() => zoom(0.8)}
+          aria-label="zoom out"
+          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+        >
+          −
+        </button>
+        <button
+          onClick={() => cyRef.current?.fit(undefined, 30)}
+          aria-label="fit graph to view"
+          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+        >
+          Fit
+        </button>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            search(query);
+          }}
+          className="flex items-center gap-1"
+          role="search"
+        >
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="find node…"
+            aria-label="find node by label"
+            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+          />
+          <button type="submit" className="rounded bg-(--surface-2) px-2 py-1 text-sm">
+            Find
+          </button>
+        </form>
+        <button
+          onClick={exportPng}
+          aria-label="export graph as PNG"
+          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+        >
+          PNG
+        </button>
+      </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted)" aria-label="edge legend">
         {EDGE_LEGEND.map((e) => (
           <span key={e.kind} className="flex items-center gap-1">
