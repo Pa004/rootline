@@ -208,79 +208,6 @@ function ExplorerInner({
           trace path
         </label>
       </fieldset>
-      <div
-        className="mt-2 flex flex-wrap items-center gap-2 text-sm"
-        role="toolbar"
-        aria-label="graph controls"
-      >
-        <label className="flex items-center gap-1">
-          layout
-          <select
-            value={direction}
-            onChange={(e) => setDirection(e.target.value as FlowDirection)}
-            aria-label="graph layout"
-            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-          >
-            {(Object.keys(FLOW_LABEL) as FlowDirection[]).map((d) => (
-              <option key={d} value={d}>
-                {FLOW_LABEL[d]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          onClick={() => zoomIn({ duration: reduceMotion ? 0 : 200 })}
-          aria-label="zoom in"
-          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-        >
-          +
-        </button>
-        <button
-          onClick={() => zoomOut({ duration: reduceMotion ? 0 : 200 })}
-          aria-label="zoom out"
-          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-        >
-          −
-        </button>
-        <button
-          onClick={() => fitView({ padding: 0.15 })}
-          aria-label="fit graph to view"
-          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-        >
-          Fit
-        </button>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            search(query);
-          }}
-          className="flex items-center gap-1"
-          role="search"
-        >
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="find node… (kind:file, affects:name)"
-            aria-label="find node by label"
-            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-          />
-          <button type="submit" className="rounded bg-(--surface-2) px-2 py-1 text-sm">
-            Find
-          </button>
-        </form>
-        {notice && (
-          <p className="text-sm text-(--muted)" role="status">
-            {notice}
-          </p>
-        )}
-        <button
-          onClick={exportPng}
-          aria-label="export graph as PNG"
-          className="rounded bg-(--surface-2) px-2 py-1 text-sm"
-        >
-          PNG
-        </button>
-      </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted)" aria-label="edge legend">
         {EDGE_LEGEND.map((e) => (
           <span key={e.kind} className="flex items-center gap-1">
@@ -297,26 +224,103 @@ function ExplorerInner({
         Cards are commits, files, symbols and tests. Click a card for detail;
         uncheck types to filter.
       </p>
-      <div
-        role="application"
-        aria-label="evidence graph"
-        className="mt-2 h-96 w-full rounded border border-(--border) bg-(--surface)"
-      >
-        <ReactFlow
-          nodes={rfNodes}
-          edges={rfEdges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          fitView
-          minZoom={0.2}
-          maxZoom={2.5}
-          proOptions={{ hideAttribution: false }}
+      <div className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
+        <div
+          role="application"
+          aria-label="evidence graph"
+          className="h-96 min-w-0 rounded border border-(--border) bg-(--surface)"
         >
-          <Background />
-          <MiniMap pannable zoomable aria-label="graph minimap" />
-        </ReactFlow>
+          <ReactFlow
+            nodes={rfNodes}
+            edges={rfEdges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            fitView
+            minZoom={0.2}
+            maxZoom={2.5}
+          >
+            <Background />
+            <MiniMap pannable zoomable aria-label="graph minimap" />
+          </ReactFlow>
+        </div>
+        <div
+          className="flex flex-col gap-2 text-sm"
+          role="toolbar"
+          aria-label="graph controls"
+          aria-orientation="vertical"
+        >
+          <label className="flex items-center gap-1">
+            layout
+            <select
+              value={direction}
+              onChange={(e) => setDirection(e.target.value as FlowDirection)}
+              aria-label="graph layout"
+              className="min-w-0 flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
+            >
+              {(Object.keys(FLOW_LABEL) as FlowDirection[]).map((d) => (
+                <option key={d} value={d}>
+                  {FLOW_LABEL[d]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => zoomIn({ duration: reduceMotion ? 0 : 200 })}
+              aria-label="zoom in"
+              className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
+            >
+              +
+            </button>
+            <button
+              onClick={() => zoomOut({ duration: reduceMotion ? 0 : 200 })}
+              aria-label="zoom out"
+              className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
+            >
+              −
+            </button>
+            <button
+              onClick={() => fitView({ padding: 0.15 })}
+              aria-label="fit graph to view"
+              className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
+            >
+              Fit
+            </button>
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              search(query);
+            }}
+            className="flex items-center gap-1"
+            role="search"
+          >
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="find node… (kind:file, affects:name)"
+              aria-label="find node by label"
+              className="min-w-0 flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
+            />
+            <button type="submit" className="rounded bg-(--surface-2) px-2 py-1 text-sm">
+              Find
+            </button>
+          </form>
+          {notice && (
+            <p className="text-sm text-(--muted)" role="status">
+              {notice}
+            </p>
+          )}
+          <button
+            onClick={exportPng}
+            aria-label="export graph as PNG"
+            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+          >
+            PNG
+          </button>
+        </div>
       </div>
       {detailNode && (
         <div className="mt-2 rounded border border-(--border) bg-(--surface) p-3 text-sm" aria-live="polite">
