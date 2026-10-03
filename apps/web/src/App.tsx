@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { Command } from "lucide-react";
+import { Command, FileText, History, LayoutGrid, ListOrdered, Network } from "lucide-react";
 import { useUi, viewFromHash, type ViewId } from "./store";
 import { CandidatesTable } from "./components/CandidatesTable";
 import { Explanation } from "./components/Explanation";
@@ -22,12 +22,12 @@ const TreemapView = lazy(() =>
   import("./graph/TreemapView").then((m) => ({ default: m.TreemapView })),
 );
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "candidates", label: "Candidates" },
-  { id: "graph", label: "Graph explorer" },
-  { id: "timeline", label: "Timeline" },
-  { id: "treemap", label: "Treemap" },
-  { id: "report", label: "Report" },
+const TABS: { id: TabId; label: string; Icon: typeof Command }[] = [
+  { id: "candidates", label: "Candidates", Icon: ListOrdered },
+  { id: "graph", label: "Graph explorer", Icon: Network },
+  { id: "timeline", label: "Timeline", Icon: History },
+  { id: "treemap", label: "Treemap", Icon: LayoutGrid },
+  { id: "report", label: "Report", Icon: FileText },
 ];
 
 const VIEW_SUBTITLES: Record<ViewId, string> = {
@@ -118,31 +118,34 @@ export default function App() {
               <Command size={15} aria-hidden="true" className="inline" /> K
             </button>
           </div>
-          <header className="pt-4">
-            <h1 className="font-display text-2xl font-bold">{VIEW_TITLES[view]}</h1>
-            <p className="text-sm text-(--muted)">
-              {VIEW_SUBTITLES[view]}{" "}
-              {view === "analysis" && (
-                <>Trace the change. Find the cause{live ? " · live" : " · sample data"}.</>
-              )}
-            </p>
-          </header>
-          {view === "analysis" && (
-            <nav aria-label="views" className="mt-3 flex gap-2">
-              {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
-                  aria-pressed={tab === t.id}
-                  className={`rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                    tab === t.id ? "bg-(--text) text-(--bg)" : "bg-(--surface-2)"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </nav>
-          )}
+          <div className="grid items-start gap-3 pt-4 lg:grid-cols-[minmax(0,1fr)_220px]">
+            <header>
+              <h1 className="font-display text-2xl font-bold">{VIEW_TITLES[view]}</h1>
+              <p className="text-sm text-(--muted)">
+                {VIEW_SUBTITLES[view]}{" "}
+                {view === "analysis" && (
+                  <>Trace the change. Find the cause{live ? " · live" : " · sample data"}.</>
+                )}
+              </p>
+            </header>
+            {view === "analysis" && (
+              <nav aria-label="views" className="flex flex-col gap-1.5">
+                {TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    aria-pressed={tab === t.id}
+                    className={`flex items-center gap-2 rounded px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                      tab === t.id ? "bg-(--text) text-(--bg)" : "bg-(--surface-2)"
+                    }`}
+                  >
+                    <t.Icon size={15} aria-hidden="true" className="shrink-0" />
+                    {t.label}
+                  </button>
+                ))}
+              </nav>
+            )}
+          </div>
           <main id="main-content" tabIndex={-1} className="mt-4">
             <div key={`${view}-${tab}`} className={reduceMotion ? undefined : "animate-view"}>
               {view === "home" && <Dashboard go={setView} />}
