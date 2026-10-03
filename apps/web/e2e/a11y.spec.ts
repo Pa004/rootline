@@ -66,8 +66,11 @@ for (const theme of THEMES) {
 
 test("skip link targets results and moves focus", async ({ page }) => {
   await page.goto("/");
-  await page.keyboard.press("Tab");
   const skip = page.getByRole("link", { name: "Skip to results" });
+  // Wait for hydration: on slow runners Tab lands on <body> if the
+  // React-rendered link is not attached yet.
+  await expect(skip).toBeAttached();
+  await page.keyboard.press("Tab");
   await expect(skip).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
