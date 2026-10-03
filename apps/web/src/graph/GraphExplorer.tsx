@@ -184,51 +184,51 @@ function ExplorerInner({
     : [];
 
   return (
-    <div>
-      <fieldset className="flex flex-wrap gap-3 text-sm">
-        <legend className="sr-only">Filter node types</legend>
-        {TYPES.map((t) => (
-          <label key={t} className="flex items-center gap-1">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="min-w-0">
+        <fieldset className="flex flex-wrap gap-3 text-sm">
+          <legend className="sr-only">Filter node types</legend>
+          {TYPES.map((t) => (
+            <label key={t} className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={!hidden.has(t)}
+                onChange={() => toggle(t)}
+                aria-label={`show ${t} nodes`}
+              />
+              {t}
+            </label>
+          ))}
+          <label className="flex items-center gap-1">
             <input
               type="checkbox"
-              checked={!hidden.has(t)}
-              onChange={() => toggle(t)}
-              aria-label={`show ${t} nodes`}
+              checked={trace}
+              onChange={() => setTrace(!trace)}
+              aria-label="trace causal path"
             />
-            {t}
+            trace path
           </label>
-        ))}
-        <label className="flex items-center gap-1">
-          <input
-            type="checkbox"
-            checked={trace}
-            onChange={() => setTrace(!trace)}
-            aria-label="trace causal path"
-          />
-          trace path
-        </label>
-      </fieldset>
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted)" aria-label="edge legend">
-        {EDGE_LEGEND.map((e) => (
-          <span key={e.kind} className="flex items-center gap-1">
-            <span
-              aria-hidden="true"
-              className="inline-block h-0.5 w-6"
-              style={{ background: e.swatch }}
-            />
-            {e.label}
-          </span>
-        ))}
-      </div>
-      <p className="mt-1 text-sm text-(--muted)">
-        Cards are commits, files, symbols and tests. Click a card for detail;
-        uncheck types to filter.
-      </p>
-      <div className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
+        </fieldset>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--muted)" aria-label="edge legend">
+          {EDGE_LEGEND.map((e) => (
+            <span key={e.kind} className="flex items-center gap-1">
+              <span
+                aria-hidden="true"
+                className="inline-block h-0.5 w-6"
+                style={{ background: e.swatch }}
+              />
+              {e.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-1 text-sm text-(--muted)">
+          Cards are commits, files, symbols and tests. Click a card for detail;
+          uncheck types to filter.
+        </p>
         <div
           role="application"
           aria-label="evidence graph"
-          className="h-96 min-w-0 rounded border border-(--border) bg-(--surface)"
+          className="mt-2 h-96 min-w-0 rounded border border-(--border) bg-(--surface)"
         >
           <ReactFlow
             nodes={rfNodes}
@@ -245,14 +245,36 @@ function ExplorerInner({
             <MiniMap pannable zoomable aria-label="graph minimap" />
           </ReactFlow>
         </div>
-        <div
-          className="flex flex-col gap-2 text-sm"
-          role="toolbar"
-          aria-label="graph controls"
-          aria-orientation="vertical"
-        >
+        {detailNode && (
+          <div className="mt-2 rounded border border-(--border) bg-(--surface) p-3 text-sm" aria-live="polite">
+            <p className="font-mono">
+              {detailNode.id}
+              {detailNode.score !== undefined && ` · score ${detailNode.score.toFixed(2)}`}
+              {detailNode.outcome ? ` · ${detailNode.outcome}` : ""}
+            </p>
+            <p className="mt-1 text-(--muted)">
+              {detailEdges.length} linked edge(s):{" "}
+              {detailEdges
+                .slice(0, 5)
+                .map((e) => e.kind)
+                .join(", ")}
+              {detailEdges.length > 5 ? ` +${detailEdges.length - 5} more` : ""}
+            </p>
+          </div>
+        )}
+      </div>
+      <div
+        className="flex flex-col gap-4 text-sm"
+        role="toolbar"
+        aria-label="graph controls"
+        aria-orientation="vertical"
+      >
+        <div role="group" aria-labelledby="graph-ctl-layout">
+          <p id="graph-ctl-layout" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            Layout
+          </p>
           <label className="flex items-center gap-1">
-            layout
+            <span className="sr-only">Arrange nodes</span>
             <select
               value={direction}
               onChange={(e) => setDirection(e.target.value as FlowDirection)}
@@ -266,10 +288,17 @@ function ExplorerInner({
               ))}
             </select>
           </label>
+          <p className="mt-1 text-xs text-(--muted)">Arrange nodes left-to-right or top-to-bottom.</p>
+        </div>
+        <div role="group" aria-labelledby="graph-ctl-zoom">
+          <p id="graph-ctl-zoom" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            Zoom
+          </p>
           <div className="flex gap-2">
             <button
               onClick={() => zoomIn({ duration: reduceMotion ? 0 : 200 })}
               aria-label="zoom in"
+              title="Zoom in"
               className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
             >
               +
@@ -277,6 +306,7 @@ function ExplorerInner({
             <button
               onClick={() => zoomOut({ duration: reduceMotion ? 0 : 200 })}
               aria-label="zoom out"
+              title="Zoom out"
               className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
             >
               −
@@ -284,11 +314,18 @@ function ExplorerInner({
             <button
               onClick={() => fitView({ padding: 0.15 })}
               aria-label="fit graph to view"
+              title="Fit whole graph in view"
               className="flex-1 rounded bg-(--surface-2) px-2 py-1 text-sm"
             >
               Fit
             </button>
           </div>
+          <p className="mt-1 text-xs text-(--muted)">Zoom in, out, or fit the whole graph in view.</p>
+        </div>
+        <div role="group" aria-labelledby="graph-ctl-search">
+          <p id="graph-ctl-search" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            Search
+          </p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -308,37 +345,28 @@ function ExplorerInner({
               Find
             </button>
           </form>
+          <p className="mt-1 text-xs text-(--muted)">Center a card by name, kind or dependency.</p>
           {notice && (
-            <p className="text-sm text-(--muted)" role="status">
+            <p className="mt-1 text-sm text-(--muted)" role="status">
               {notice}
             </p>
           )}
+        </div>
+        <div role="group" aria-labelledby="graph-ctl-export">
+          <p id="graph-ctl-export" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            Export
+          </p>
           <button
             onClick={exportPng}
             aria-label="export graph as PNG"
-            className="rounded bg-(--surface-2) px-2 py-1 text-sm"
+            title="Download graph as PNG image"
+            className="w-full rounded bg-(--surface-2) px-2 py-1 text-sm"
           >
             PNG
           </button>
+          <p className="mt-1 text-xs text-(--muted)">Download the current view as an image.</p>
         </div>
       </div>
-      {detailNode && (
-        <div className="mt-2 rounded border border-(--border) bg-(--surface) p-3 text-sm" aria-live="polite">
-          <p className="font-mono">
-            {detailNode.id}
-            {detailNode.score !== undefined && ` · score ${detailNode.score.toFixed(2)}`}
-            {detailNode.outcome ? ` · ${detailNode.outcome}` : ""}
-          </p>
-          <p className="mt-1 text-(--muted)">
-            {detailEdges.length} linked edge(s):{" "}
-            {detailEdges
-              .slice(0, 5)
-              .map((e) => e.kind)
-              .join(", ")}
-            {detailEdges.length > 5 ? ` +${detailEdges.length - 5} more` : ""}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
