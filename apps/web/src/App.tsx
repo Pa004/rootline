@@ -118,34 +118,32 @@ export default function App() {
               <Command size={15} aria-hidden="true" className="inline" /> K
             </button>
           </div>
-          <div className="grid items-start gap-3 pt-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-            <header>
-              <h1 className="font-display text-2xl font-bold">{VIEW_TITLES[view]}</h1>
-              <p className="text-sm text-(--muted)">
-                {VIEW_SUBTITLES[view]}{" "}
-                {view === "analysis" && (
-                  <>Trace the change. Find the cause{live ? " · live" : " · sample data"}.</>
-                )}
-              </p>
-            </header>
-            {view === "analysis" && (
-              <nav aria-label="views" className="flex flex-col gap-1.5">
-                {TABS.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTab(t.id)}
-                    aria-pressed={tab === t.id}
-                    className={`flex items-center gap-2 rounded px-3 py-1.5 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                      tab === t.id ? "bg-(--text) text-(--bg)" : "bg-(--surface-2)"
-                    }`}
-                  >
-                    <t.Icon size={15} aria-hidden="true" className="shrink-0" />
-                    {t.label}
-                  </button>
-                ))}
-              </nav>
-            )}
-          </div>
+          <header className="pt-4">
+            <h1 className="font-display text-2xl font-bold">{VIEW_TITLES[view]}</h1>
+            <p className="text-sm text-(--muted)">
+              {VIEW_SUBTITLES[view]}{" "}
+              {view === "analysis" && (
+                <>Trace the change. Find the cause{live ? " · live" : " · sample data"}.</>
+              )}
+            </p>
+          </header>
+          {view === "analysis" && (
+            <nav aria-label="views" className="mt-3 flex flex-wrap gap-2">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  aria-pressed={tab === t.id}
+                  className={`flex items-center gap-2 rounded px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${
+                    tab === t.id ? "bg-(--text) text-(--bg)" : "bg-(--surface-2)"
+                  }`}
+                >
+                  <t.Icon size={15} aria-hidden="true" className="shrink-0" />
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+          )}
           <main id="main-content" tabIndex={-1} className="mt-4">
             <div key={`${view}-${tab}`} className={reduceMotion ? undefined : "animate-view"}>
               {view === "home" && <Dashboard go={setView} />}
