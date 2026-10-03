@@ -1,6 +1,5 @@
-# Rootline Web (Phase 3)
+# Rootline Web
 
-React + Vite + TypeScript + Cytoscape.js graph explorer.
-
-Placeholder in P0: no source yet. The offline `report.html` (FR-011)
-ships before this dashboard.
+React + Vite + TypeScript dashboard: ranked candidates, evidence graph
+explorer (React Flow + dagre), timeline, treemap, benchmarks, guided tour
+and tutorial. Deploys to Cloudflare Pages.

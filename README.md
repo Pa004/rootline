@@ -22,7 +22,7 @@ contradictory evidence — fully local, no paid services.
 </figure>
 <figure>
   <img src="assets/screenshot-graph.png" alt="Rootline evidence graph explorer with commit, file, symbol and test nodes" width="100%" />
-  <figcaption><strong>Evidence graph explorer:</strong> commits, files, symbols and tests linked by changes, imports and coverage — filterable by node type.</figcaption>
+  <figcaption><strong>Evidence graph explorer:</strong> commits, files, symbols and tests linked by changes, test outcomes, coverage and dependencies — with causal-path trace, smart search and PNG export.</figcaption>
 </figure>
 
 </div>
@@ -92,8 +92,11 @@ Requires Python 3.13+ and a git binary. No accounts, no paid services.
 ```bash
 rootline init                                  # sample rootline.toml weights
 rootline analyze                               # one-command investigation (UC-01)
+rootline commits                               # commits in the analysis window
+rootline graph                                 # evidence-graph stats by kind
 rootline candidates analysis.json              # ranked table
 rootline explain analysis.json                 # evidence for and against
+rootline export analysis.json                  # portable analysis bundle
 rootline report analysis.json -o report.html   # offline shareable report
 rootline verify <sha> --test <failing-test>    # revert in a throwaway worktree
 rootline blast-radius <sha>                    # what a commit affects
@@ -160,7 +163,7 @@ Repository
 ```text
 rootline/
 ├── apps/api/          # FastAPI service (uv workspace member)
-├── apps/web/          # React + Vite + Cytoscape.js dashboard
+├── apps/web/          # React + Vite + React Flow dashboard
 ├── workers/api/       # Cloudflare Python Worker demo (KV-backed, read-only)
 ├── packages/core/     # Evidence graph, ranking, corpus, calibration
 ├── packages/cli/      # Typer CLI (12 commands)
