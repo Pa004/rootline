@@ -11,6 +11,7 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Download, Layers, Search, SlidersHorizontal, ZoomIn } from "lucide-react";
 import { toPng } from "html-to-image";
 import { useUi } from "../store";
 import type { CandidateScore } from "../types";
@@ -184,7 +185,7 @@ function ExplorerInner({
     : [];
 
   return (
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_240px]">
+    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
       <div className="min-w-0">
         <fieldset className="flex flex-wrap gap-3 text-sm">
           <legend className="sr-only">Filter node types</legend>
@@ -225,10 +226,12 @@ function ExplorerInner({
           Cards are commits, files, symbols and tests. Click a card for detail;
           uncheck types to filter.
         </p>
+      </div>
+      <div className="min-w-0 lg:col-start-1 lg:row-start-2">
         <div
           role="application"
           aria-label="evidence graph"
-          className="mt-2 h-96 min-w-0 rounded border border-(--border) bg-(--surface)"
+          className="h-96 min-w-0 rounded border border-(--border) bg-(--surface)"
         >
           <ReactFlow
             nodes={rfNodes}
@@ -263,14 +266,23 @@ function ExplorerInner({
           </div>
         )}
       </div>
-      <div
-        className="flex flex-col gap-4 text-sm"
-        role="toolbar"
-        aria-label="graph controls"
-        aria-orientation="vertical"
+      <aside
+        className="min-w-0 rounded border border-(--border) bg-(--surface) p-3 lg:col-start-2 lg:row-start-2 lg:h-full"
+        aria-labelledby="graph-controls-title"
       >
+        <h3 id="graph-controls-title" className="flex items-center gap-1.5 text-sm font-semibold">
+          <SlidersHorizontal size={15} aria-hidden="true" />
+          Graph controls
+        </h3>
+        <div
+          className="mt-3 flex flex-col gap-4 text-sm"
+          role="toolbar"
+          aria-labelledby="graph-controls-title"
+          aria-orientation="vertical"
+        >
         <div role="group" aria-labelledby="graph-ctl-layout">
-          <p id="graph-ctl-layout" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+          <p id="graph-ctl-layout" className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            <Layers size={12} aria-hidden="true" />
             Layout
           </p>
           <label className="flex items-center gap-1">
@@ -291,7 +303,8 @@ function ExplorerInner({
           <p className="mt-1 text-xs text-(--muted)">Arrange nodes left-to-right or top-to-bottom.</p>
         </div>
         <div role="group" aria-labelledby="graph-ctl-zoom">
-          <p id="graph-ctl-zoom" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+          <p id="graph-ctl-zoom" className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            <ZoomIn size={12} aria-hidden="true" />
             Zoom
           </p>
           <div className="flex gap-2">
@@ -323,7 +336,8 @@ function ExplorerInner({
           <p className="mt-1 text-xs text-(--muted)">Zoom in, out, or fit the whole graph in view.</p>
         </div>
         <div role="group" aria-labelledby="graph-ctl-search">
-          <p id="graph-ctl-search" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+          <p id="graph-ctl-search" className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            <Search size={12} aria-hidden="true" />
             Search
           </p>
           <form
@@ -353,7 +367,8 @@ function ExplorerInner({
           )}
         </div>
         <div role="group" aria-labelledby="graph-ctl-export">
-          <p id="graph-ctl-export" className="mb-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+          <p id="graph-ctl-export" className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-(--muted)">
+            <Download size={12} aria-hidden="true" />
             Export
           </p>
           <button
@@ -366,7 +381,8 @@ function ExplorerInner({
           </button>
           <p className="mt-1 text-xs text-(--muted)">Download the current view as an image.</p>
         </div>
-      </div>
+        </div>
+      </aside>
     </div>
   );
 }
